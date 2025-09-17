@@ -1,0 +1,98 @@
+.table-sample {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: #f8fafc;
+  border-radius: 0;
+  color: #213547;
+  box-shadow: none;
+}
+
+.table-sample h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.table-sample p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.info-box {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  backdrop-filter: blur(10px);
+}
+
+.info-box h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.info-box ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.info-box li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.info-box li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #4ade80;
+  font-weight: bold;
+}
+
+.info-box li:last-child {
+  border-bottom: none;
+}
+
+.greeting {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .table-sample {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .table-sample h1 {
+    font-size: 2rem;
+  }
+  
+  .info-box {
+    padding: 1rem;
+  }
+}
+
+.fixed-table{
+    border-right: 1px solid #ccc;
+    background: #fff;
+    overflow-y: hidden;   /* 隐藏左表滚动条 */
+    flex-shrink: 0;       /* 防止被压缩 */
+}
+
+.scroll-table{
+    flex: 1;
+    overflow-x: auto;
+}
