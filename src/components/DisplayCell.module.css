@@ -1,0 +1,31 @@
+.displayCell {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  word-break: break-word;
+  /* white-space: nowrap; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+/* 数字类型特殊样式 */
+.displayCell[data-type="number"] {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* 日期类型特殊样式 */
+.displayCell[data-type="date"] {
+  font-variant-numeric: tabular-nums;
+}

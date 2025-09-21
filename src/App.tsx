@@ -1,12 +1,20 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { type Language } from './types/i18n';
 import Home from './components/Home';
 import TableSample from './components/TableSample';
-import TableSampleNew2 from './components/TableSample_new2';
-import TableSampleNew from './components/TableSample_new';
+import Table from './components/Table';
+import ActionButtonClient from './components/testcase/ActionButtonClient';
 import './App.css';
-
+import { InputNumber} from 'antd';
+import CustomSelectTest from './components/testcase/CustomSelectTest'
 function App() {
+  const [currentLanguage, setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
   return (
+    <LanguageProvider 
+      defaultLanguage={currentLanguage}
+    >
     <Router>
       <div className="app">
         <nav className="nav-bar">
@@ -17,8 +25,9 @@ function App() {
             <div className="nav-links">
               <Link to="/" className="nav-link">首页</Link>
               <Link to="/table" className="nav-link">表格示例</Link>
-              <Link to="/tableNew" className="nav-link">表格示例New</Link>
-              <Link to="/tableNew2" className="nav-link">表格示例New</Link>
+              <Link to="/actionButtonClient" className="nav-link">按钮区组件示例</Link>  
+              <Link to="/customSelectTest" className="nav-link">customSelectTest</Link>  
+              <InputNumber defaultValue={100}></InputNumber>                       
             </div>
           </div>
         </nav>
@@ -26,9 +35,10 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/table" element={<TableSample />} />
-            <Route path="/tableNew" element={<TableSampleNew />} />
-            <Route path="/tableNew2" element={<TableSampleNew2 />} />
+            <Route path="/tableSample" element={<TableSample />} />
+            <Route path="/table" element={<Table />} />
+            <Route path="/actionButtonClient" element={<ActionButtonClient />} />
+            <Route path="/customSelectTest" element={<CustomSelectTest />} />
           </Routes>
         </main>
 
@@ -37,6 +47,7 @@ function App() {
         </footer> */}
       </div>
     </Router>
+    </LanguageProvider>
   );
 }
 

@@ -84,3 +84,15 @@
     padding: 1rem;
   }
 }
+
+.fixed-table{
+    border-right: 1px solid #ccc;
+    background: #fff;
+    overflow-y: hidden;   /* 隐藏左表滚动条 */
+    flex-shrink: 0;       /* 防止被压缩 */
+}
+
+.scroll-table{
+    flex: 1;
+    overflow-x: auto;
+}
