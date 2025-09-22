@@ -42,8 +42,10 @@ export interface ColumnConfig{
 	style?: React.CSSProperties; //列样式
 }
 
-export const sampleFixedColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions"];
-export const sampleScrollabledColumnsNames = ["weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
+// export const sampleFixedColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions"];
+// export const sampleScrollabledColumnsNames = ["weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
+export const sampleFixedColumnsNames = ["xxxxxxxxxxxxxxxxx"];
+export const sampleScrollabledColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions","weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
 export const sampleColumnsConfig: ColumnConfig[]= [{
 		title: "ID",
 		dataIndex: "id",

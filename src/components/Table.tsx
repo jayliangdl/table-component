@@ -3,19 +3,12 @@ import type { ProductInUI } from "../types/Product";
 import { generateMockProducts } from "../utils/mockData";
 import "./TableSample.module.css";
 import {sampleColumnsConfig,sampleFixedColumnsNames,sampleScrollabledColumnsNames} from "../types/editableCell";
-import Row from "./Row";
 import { type Id} from "../types/id";
-import { type RecordData,saveRecord,deleteRecord} from "../service/RecordService"
-import { DragDropContext, Droppable, type DropResult,type DragUpdate } from "react-beautiful-dnd";
-
-
-const fixedColumnsConfig = sampleColumnsConfig.filter(config=>{
-    return sampleFixedColumnsNames.includes(config.columnName);
-});
-
-const scrollabledColumnsConfig = sampleColumnsConfig.filter(config=>{
-    return sampleScrollabledColumnsNames.includes(config.columnName);
-})
+import { type RecordData,saveRecord} from "../service/RecordService"
+import { type DropResult,type DragUpdate } from "react-beautiful-dnd";
+import DroppableRow from "./DroppableRow";
+import DroppableColumn from "./DroppableColumn";
+import type { ColumnConfig } from "../types/editableCell";
 
 const Table: React.FC = () => {
 
@@ -53,6 +46,20 @@ const Table: React.FC = () => {
 
   //存储本地临时新增的行（未提交到后端）
   const [localNewRows,setLocalNewRows] = useState<RecordData[]>([])
+
+  const [fixedColumnsConfig,setFixColumnsConfig] = useState<ColumnConfig[]>([]);
+  const [scrollabledColumnsConfig,setScrollabledColumnsConfig] = useState<ColumnConfig[]>([]);
+
+  useEffect(() => {
+    const fixedColumnsConfig = sampleColumnsConfig.filter(config=>{
+      return sampleFixedColumnsNames!==undefined && sampleFixedColumnsNames.length>0?sampleFixedColumnsNames.includes(config.columnName):[];
+    });
+    setFixColumnsConfig(fixedColumnsConfig);
+    const scrollabledColumnsConfig = sampleColumnsConfig.filter(config=>{
+      return sampleScrollabledColumnsNames.includes(config.columnName);
+    });
+    setScrollabledColumnsConfig(scrollabledColumnsConfig);
+  },[]);
 
   useEffect(() => {
     // 生成测试数据 - 增加到80条以便展示更多内容
@@ -592,6 +599,19 @@ const Table: React.FC = () => {
         setDraggingRowIndex(update.source.index);
       }
     }
+
+    /**
+     * 
+     * @param data 外部传入新的数据，重置当前的数据源
+     * 主要用于记录被拖拽更改顺序后，重置表格记录数据源
+     */
+    const resetDatasourceAfterRowDrop = (data:any[]) => {
+      setProducts(data);
+    }
+
+    const resetDatasourceAfterColumnDrop=(data:ColumnConfig[])=>{
+      setScrollabledColumnsConfig(data);
+    }
   return (
     <div
       className="table-sample"
@@ -670,11 +690,18 @@ const Table: React.FC = () => {
                 {/* <th style={getHeaderStyle({ width: "200px" })}>操作</th> */}
               </tr>
             </thead>
-            <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
+            <DroppableRow products={products} 
+              columnsConfigs={fixedColumnsConfig} 
+              handleSave={handleSave}
+              handleEdit={handleEdit}
+              handleCancel={handleCancel}
+              handleDelete={handleDelete}
+              resetDatasource={resetDatasourceAfterRowDrop}
+            />
+            {/* <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
               <Droppable droppableId="table-body">
                 {(provided) => (
             <tbody ref={provided.innerRef} {...provided.droppableProps}>
-              {/* {products.map((product) => { */}
               {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
@@ -692,7 +719,7 @@ const Table: React.FC = () => {
             </tbody>
             )}
             </Droppable>
-            </DragDropContext>
+            </DragDropContext> */}
           </table>
         </div>
         <div
@@ -719,7 +746,7 @@ const Table: React.FC = () => {
               // borderCollapse: "collapse",
             }}
           >
-            <thead>
+            {/* <thead>
               <tr
                 style={{
                   backgroundColor: "#f5f5f5",
@@ -737,12 +764,20 @@ const Table: React.FC = () => {
                   )
                 }
               </tr>
-            </thead>
-            <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
+            </thead> */}
+            <DroppableColumn columnsConfigs={scrollabledColumnsConfig} resetDatasource={resetDatasourceAfterColumnDrop}/>
+            <DroppableRow products={products} 
+              columnsConfigs={scrollabledColumnsConfig} 
+              handleSave={handleSave}
+              handleEdit={handleEdit}
+              handleCancel={handleCancel}
+              handleDelete={handleDelete}
+              resetDatasource={resetDatasourceAfterRowDrop}
+            />
+            {/* <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
               <Droppable droppableId="table-body">
                 {(provided) => (
             <tbody ref={provided.innerRef} {...provided.droppableProps}>
-              {/* {products.map((product) => { */}
               {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
@@ -761,7 +796,7 @@ const Table: React.FC = () => {
             </tbody>
             )}
             </Droppable>
-            </DragDropContext>
+            </DragDropContext> */}
           </table>
         </div>
       </div>
