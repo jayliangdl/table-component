@@ -1,0 +1,8 @@
+.dragOver {
+  background-color: #e3e3e3 !important;
+  transition: background 0.2s;
+}
+.thDraggable{
+  cursor: grab;
+  user-select: none;
+}

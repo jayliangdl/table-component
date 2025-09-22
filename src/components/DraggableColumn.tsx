@@ -1,32 +1,82 @@
-import { Draggable, type DraggableProvided, type DraggableStateSnapshot } from "react-beautiful-dnd";
-import React from "react";
-import { type ColumnCoreProps } from "./ColumnCore";
-import ColumnCore from "./ColumnCore";
+import type { ColumnConfig } from "../types/editableCell";
+import { useRef, useEffect } from "react";
+import styles from "./DraggableColumn.module.css"; // 假设你用 CSS Modules
 
-/**
- * 可拖拽的列组件，基于 react-beautiful-dnd 实现
- * 本组件包裹了 ColumnCore 组件，并为其提供拖拽功能
- */
-interface DraggableColumnProps extends ColumnCoreProps{
-  index:number;
+interface DraggableColumnProps {
+  columnsConfigs: ColumnConfig[];
+  onColumnDrop: (from: number, to: number) => void;
 }
-const DraggableColumn:React.FC<DraggableColumnProps> = ({index,...columnCoreProps})=>{
-  const {columnConfig} = columnCoreProps;
+const DraggableColumn: React.FC<DraggableColumnProps> = ({
+  columnsConfigs,
+  onColumnDrop,
+}) => {
+  const thRefs = useRef<(HTMLTableCellElement | null)[]>([]);
+  const dragSrcIdx = useRef<number | null>(null);
+
+  useEffect(() => {
+    thRefs.current.forEach((th, idx) => {
+      if (!th) return;
+      // 清理旧事件
+      th.ondragstart = null;
+      th.ondragover = null;
+      th.ondragleave = null;
+      th.ondrop = null;
+
+      th.setAttribute("draggable", "true");
+
+      th.ondragstart = (e) => {
+        dragSrcIdx.current = idx;
+        e.dataTransfer!.effectAllowed = "move";
+      };
+      th.ondragover = (e) => {
+        e.preventDefault();
+        th.classList.add(styles.dragOver);
+      };
+      th.ondragleave = () => {
+        th.classList.remove(styles.dragOver);
+      };
+      th.ondrop = (e) => {
+        e.preventDefault();
+        th.classList.remove(styles.dragOver);
+        const from = dragSrcIdx.current;
+        const to = idx;
+        if (from !== null && from !== to) {
+          onColumnDrop(from, to);
+        }
+        dragSrcIdx.current = null;
+      };
+    });
+    // 清理函数
+    return () => {
+      thRefs.current.forEach((th) => {
+        if (!th) return;
+        th.ondragstart = null;
+        th.ondragover = null;
+        th.ondragleave = null;
+        th.ondrop = null;
+      });
+    };
+  }, [columnsConfigs, onColumnDrop]);
   return (
-    <Draggable draggableId={`column-${columnConfig.columnName}`} index={index}>
-      {(provided: DraggableProvided,snapshot:DraggableStateSnapshot)=>(
-
-        <ColumnCore key={columnConfig.columnName}
-          {...columnCoreProps} 
-          ref={provided.innerRef}
-          style={{...provided.draggableProps.style}}  //Jay:拖动时重要的样式
-          draggableProps={provided.draggableProps}
-          dragHandleProps={provided.dragHandleProps || undefined}
-          isDragging={snapshot.isDragging}
-          />
-      )}
-    </Draggable>
-  )
-}
+    <thead>
+      <tr
+        style={{
+          backgroundColor: "#f5f5f5",
+          position: "sticky", // Jay-固定表头，重要~！
+          top: 0, // Jay-固定在顶部，重要~！
+          zIndex: 1, // 确保在内容之上
+        }}
+      >
+        {columnsConfigs.map((columnConfig, index) => {
+          return (
+            <th className={styles.thDraggable} draggable="true" ref={(el) => (thRefs.current[index] = el)}>
+              <span>{columnConfig.title}</span>
+            </th>
+          );
+        })}
+      </tr>
+    </thead>
+  );
+};
 
 export default DraggableColumn;

@@ -7,7 +7,7 @@ import { type Id} from "../types/id";
 import { type RecordData,saveRecord} from "../service/RecordService"
 import { type DropResult,type DragUpdate } from "react-beautiful-dnd";
 import DroppableRow from "./DroppableRow";
-import DroppableColumn from "./DroppableColumn";
+import DraggableColumn from "./DraggableColumn";
 import type { ColumnConfig } from "../types/editableCell";
 
 const Table: React.FC = () => {
@@ -612,6 +612,15 @@ const Table: React.FC = () => {
     const resetDatasourceAfterColumnDrop=(data:ColumnConfig[])=>{
       setScrollabledColumnsConfig(data);
     }
+
+    const handleColumnDrop = (from: number, to: number) => {
+      const newCols = [...scrollabledColumnsConfig];
+      const [moved] = newCols.splice(from, 1);
+      newCols.splice(to, 0, moved);
+      setScrollabledColumnsConfig(newCols);
+    };
+
+
   return (
     <div
       className="table-sample"
@@ -765,7 +774,8 @@ const Table: React.FC = () => {
                 }
               </tr>
             </thead> */}
-            <DroppableColumn columnsConfigs={scrollabledColumnsConfig} resetDatasource={resetDatasourceAfterColumnDrop}/>
+            <DraggableColumn columnsConfigs={scrollabledColumnsConfig} onColumnDrop={handleColumnDrop} />
+            {/* <DroppableColumn columnsConfigs={scrollabledColumnsConfig} resetDatasource={resetDatasourceAfterColumnDrop}/> */}
             <DroppableRow products={products} 
               columnsConfigs={scrollabledColumnsConfig} 
               handleSave={handleSave}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>可拖拽表头的表格</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 80%;
+      margin: 40px auto;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      text-align: center;
+    }
+    th {
+      background: #f5f5f5;
+      cursor: move;
+      user-select: none;
+    }
+    th.drag-over {
+      background: #d0eaff;
+    }
+  </style>
+</head>
+<body>
+  <table id="dragTable">
+    <thead>
+      <tr id="headerRow">
+        <th draggable="true">姓名</th>
+        <th draggable="true">年龄</th>
+        <th draggable="true">性别</th>
+        <th draggable="true">城市</th>
+      </tr>
+    </thead>
+    <tbody>
+  <tr draggable="true"><td>张三</td><td>25</td><td>男</td><td>北京</td></tr>
+  <tr draggable="true"><td>李四</td><td>30</td><td>女</td><td>上海</td></tr>
+  <tr draggable="true"><td>王五</td><td>28</td><td>男</td><td>广州</td></tr>
+  <tr draggable="true"><td>赵六</td><td>22</td><td>女</td><td>深圳</td></tr>
+  <tr draggable="true"><td>孙七</td><td>35</td><td>男</td><td>杭州</td></tr>
+  <tr draggable="true"><td>周八</td><td>27</td><td>女</td><td>成都</td></tr>
+  <tr draggable="true"><td>钱九</td><td>31</td><td>男</td><td>重庆</td></tr>
+  <tr draggable="true"><td>吴十</td><td>29</td><td>女</td><td>西安</td></tr>
+    </tbody>
+  </table>
+    <script>
+    const table = document.getElementById('dragTable');
+    const headerRow = document.getElementById('headerRow');
+    let dragSrcIdx = null;
+
+    // 表头拖拽
+    Array.from(headerRow.children).forEach((th, idx) => {
+      th.addEventListener('dragstart', function(e) {
+        dragSrcIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      th.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+      });
+      th.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+      });
+      th.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const dragTargetIdx = idx;
+        if (dragSrcIdx === null || dragSrcIdx === dragTargetIdx) return;
+        moveColumn(dragSrcIdx, dragTargetIdx);
+        dragSrcIdx = null;
+      });
+    });
+
+    function moveColumn(fromIdx, toIdx) {
+      if (fromIdx === toIdx) return;
+      // 移动表头
+      const ths = headerRow.children;
+      headerRow.insertBefore(ths[fromIdx], toIdx > fromIdx ? ths[toIdx].nextSibling : ths[toIdx]);
+      // 移动每一行的对应单元格
+      Array.from(table.tBodies[0].rows).forEach(row => {
+        const cells = row.children;
+        row.insertBefore(cells[fromIdx], toIdx > fromIdx ? cells[toIdx].nextSibling : cells[toIdx]);
+      });
+    }
+
+    // 行拖拽
+    let dragRow = null;
+    let dragOverRow = null;
+    Array.from(table.tBodies[0].rows).forEach(row => {
+      row.addEventListener('dragstart', function(e) {
+        dragRow = this;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => this.style.opacity = '0.4', 0);
+      });
+      row.addEventListener('dragend', function() {
+        this.style.opacity = '';
+        dragRow = null;
+      });
+      row.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.background = '#d0eaff';
+        dragOverRow = this;
+      });
+      row.addEventListener('dragleave', function() {
+        this.style.background = '';
+        dragOverRow = null;
+      });
+      row.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.background = '';
+        if (dragRow && dragRow !== this) {
+          if (this.rowIndex > dragRow.rowIndex) {
+            this.parentNode.insertBefore(dragRow, this.nextSibling);
+          } else {
+            this.parentNode.insertBefore(dragRow, this);
+          }
+        }
+        dragRow = null;
+        dragOverRow = null;
+      });
+    });
+  </script>
+</body>
+</html>
