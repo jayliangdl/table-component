@@ -1,19 +1,24 @@
-import React,{useEffect,useCallback} from "react";
-
-import ActionButton from "./ActionButton";
-import EditableCell from "./EditableCell";
+import React,{useEffect,useCallback,forwardRef} from "react";
 import {type ColumnConfig} from "../types/editableCell";
+import EditableCell from "./EditableCell";
 import type { Id } from "../types/id";
+import { Draggable, type DraggableProvided, type DraggableStateSnapshot,
+  type DraggableProvidedDragHandleProps,type DraggableProvidedDraggableProps } from "react-beautiful-dnd";
 
 interface RowProps {
   columnsConfigs: ColumnConfig[];
   product: any;
   isEditing: boolean;
   isSaving: boolean;
+  style?: React.CSSProperties;
   onSave: (id: Id,newRecord:any) => Promise<void>;
   onCancel: (id: Id) => Promise<void>;
   onEdit: (id: Id)=>void;
   onDelete: (id: Id) => Promise<void>;
+  draggableProps?: DraggableProvidedDraggableProps; // 添加 draggableProps
+  dragHandleProps?: DraggableProvidedDragHandleProps; // 添加 dragHandleProps
+  isDragging?: boolean; // 添加 isDragging，用于拖拽状态,
+  isDraggingRow?: boolean; // 添加 isDraggingRow，用于拖拽状态,
 }
 const getContentStyle = (
   additionStyle?: React.CSSProperties
@@ -34,16 +39,21 @@ const getContentStyle = (
       };
   return ret;
 };
-const RowCore: React.FC<RowProps> = (rowProps: RowProps) => {
+const RowCore= forwardRef<HTMLTableRowElement, RowProps>((rowProps,ref) => {
   const {
     columnsConfigs,
     product,
     isEditing,
     isSaving,
+    style,
     onSave,
     onCancel,
     onEdit,
     onDelete,
+    draggableProps,
+    dragHandleProps,
+    isDragging,
+    isDraggingRow,
   } = rowProps;
 
 
@@ -103,7 +113,11 @@ const RowCore: React.FC<RowProps> = (rowProps: RowProps) => {
   ,[onDelete]);
 
   return (
-    <tr key={currentRowData.id}>
+    <tr ref={ref} key={currentRowData.id} 
+      {...dragHandleProps} {...draggableProps} 
+      style={{...style,
+      backgroundColor: isDraggingRow ? "rgba(0, 123, 255, 0.1)" : "white", // 拖拽时高亮
+      ...draggableProps?.style,}}>
       {
         columnsConfigs.map(
           (col)=>{
@@ -136,26 +150,31 @@ const RowCore: React.FC<RowProps> = (rowProps: RowProps) => {
           }
         )
       }
-      {/* <td
-        style={getContentStyle({
-          textAlign: "center",
-          whiteSpace: "nowrap",
-        })}
-      >
-        
-        <ActionButton
-          id={product.id}
-          onSave={handleSave}
-          onDelete={onDelete}
-          onEdit={handleEdit}
-          onCancel={onCancel}
-          isEditing={isEditing}
-        />
-      </td> */}
     </tr>
   );
-};
-const Row = RowCore;//使用 React.memo 进行性能优化，避免不必要的重复渲染（仅当组件入参变化时才重新渲染）
+});
+
+interface DraggableRowProps extends RowProps{
+  index:number;
+}
+const DraggableRow:React.FC<DraggableRowProps> = ({index,...rowProps})=>{
+  const {product} = rowProps;
+  return (
+    <Draggable draggableId={`row-${product.id}`} index={index}>
+      {(provided: DraggableProvided,snapshot:DraggableStateSnapshot)=>(
+        <RowCore 
+          {...rowProps} 
+          ref={provided.innerRef}
+          style={{...provided.draggableProps.style}}  //Jay:拖动时重要的样式
+          draggableProps={provided.draggableProps}
+          dragHandleProps={provided.dragHandleProps || undefined}
+          isDragging={snapshot.isDragging}
+          />
+      )}
+    </Draggable>
+  )
+}
+const Row = DraggableRow;//使用 React.memo 进行性能优化，避免不必要的重复渲染（仅当组件入参变化时才重新渲染）
 // export default React.memo(Row);
 /**
  * 为确保只有在 product 或 isEditing 发生变化时才重新渲染组件，我们可以提供一个自定义的比较函数给 React.memo。

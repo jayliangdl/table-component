@@ -6,6 +6,8 @@ import {sampleColumnsConfig,sampleFixedColumnsNames,sampleScrollabledColumnsName
 import Row from "./Row";
 import { type Id} from "../types/id";
 import { type RecordData,saveRecord,deleteRecord} from "../service/RecordService"
+import { DragDropContext, Droppable, type DropResult,type DragUpdate } from "react-beautiful-dnd";
+
 
 const fixedColumnsConfig = sampleColumnsConfig.filter(config=>{
     return sampleFixedColumnsNames.includes(config.columnName);
@@ -568,6 +570,28 @@ const Table: React.FC = () => {
       handleSaveLocal(recordId.toString(), newRow);
     },[]);
 
+    const handleDragEnd = (result: DropResult) => {
+      if (!result.destination) return;
+
+      const reorderedProducts = Array.from(products);
+      const [movedProduct] = reorderedProducts.splice(result.source.index, 1);
+      reorderedProducts.splice(result.destination.index, 0, movedProduct);
+
+      setProducts(reorderedProducts);
+      //清除拖拽状态
+      setDraggingRowId(null);
+      setDraggingRowIndex(null);
+    };
+
+    const [draggingRowId, setDraggingRowId] = useState<Id | null>(null);
+    const [draggingRowIndex, setDraggingRowIndex] = useState<number | null>(null);
+
+    const handleDragUpdate = (update:DragUpdate)=>{
+      if(update.draggableId){
+        setDraggingRowId(update.draggableId);
+        setDraggingRowIndex(update.source.index);
+      }
+    }
   return (
     <div
       className="table-sample"
@@ -646,19 +670,29 @@ const Table: React.FC = () => {
                 {/* <th style={getHeaderStyle({ width: "200px" })}>操作</th> */}
               </tr>
             </thead>
-            <tbody>
+            <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
+              <Droppable droppableId="table-body">
+                {(provided) => (
+            <tbody ref={provided.innerRef} {...provided.droppableProps}>
               {/* {products.map((product) => { */}
-              {products.map((product) => {
+              {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
                 return (
 
-                  <Row columnsConfigs={fixedColumnsConfig} key={product.id} product={product} isEditing={isEditing} isSaving={isSaving} 
-                  onSave={handleSave} onEdit={handleEdit} onCancel={handleCancel} onDelete={handleDelete}
+                  <Row index={index} columnsConfigs={fixedColumnsConfig} 
+                  key={product.id} product={product} isEditing={isEditing} isSaving={isSaving} 
+                  onSave={handleSave} onEdit={handleEdit} 
+                  onCancel={handleCancel} onDelete={handleDelete}
+                  isDragging={draggingRowId===`row-${product.id}`}
                   />                  
                 );
               })}
+              {provided.placeholder}
             </tbody>
+            )}
+            </Droppable>
+            </DragDropContext>
           </table>
         </div>
         <div
@@ -704,23 +738,30 @@ const Table: React.FC = () => {
                 }
               </tr>
             </thead>
-            <tbody>
+            <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
+              <Droppable droppableId="table-body">
+                {(provided) => (
+            <tbody ref={provided.innerRef} {...provided.droppableProps}>
               {/* {products.map((product) => { */}
-              {products.map((product) => {
+              {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
                 return (
-                    <Row 
+                    <Row index={index} 
                     columnsConfigs={scrollabledColumnsConfig} 
                     key={product.id} 
                     product={product} 
                     isEditing={isEditing} isSaving={isSaving} 
+                    isDragging={draggingRowId===`row-${product.id}`}
                   onSave={handleSave} onEdit={handleEdit}
                   onCancel={handleCancel} onDelete={handleDelete}
                   />                  
                 );
               })}
             </tbody>
+            )}
+            </Droppable>
+            </DragDropContext>
           </table>
         </div>
       </div>

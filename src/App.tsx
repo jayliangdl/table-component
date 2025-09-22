@@ -9,6 +9,7 @@ import ActionButtonClient from './components/testcase/ActionButtonClient';
 import './App.css';
 import { InputNumber} from 'antd';
 import CustomSelectTest from './components/testcase/CustomSelectTest'
+import DndDemo from './components/DndDemo'
 function App() {
   const [currentLanguage, setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
   return (
@@ -27,6 +28,7 @@ function App() {
               <Link to="/table" className="nav-link">表格示例</Link>
               <Link to="/actionButtonClient" className="nav-link">按钮区组件示例</Link>  
               <Link to="/customSelectTest" className="nav-link">customSelectTest</Link>  
+              <Link to="/dndDemo" className="nav-link">DND demo</Link>  
               <InputNumber defaultValue={100}></InputNumber>                       
             </div>
           </div>
@@ -39,6 +41,7 @@ function App() {
             <Route path="/table" element={<Table />} />
             <Route path="/actionButtonClient" element={<ActionButtonClient />} />
             <Route path="/customSelectTest" element={<CustomSelectTest />} />
+            <Route path="/dndDemo" element={<DndDemo />} />
           </Routes>
         </main>
 

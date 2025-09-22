@@ -1,0 +1,28 @@
+/* 确保拖拽元素有正确的光标样式 */
+[data-rbd-drag-handle-draggable-id] {
+  cursor: grab !important;
+}
+
+/* 拖拽时的样式 */
+[data-rbd-draggable-id][data-rbd-dragging="true"] {
+  z-index: 9999 !important;
+}
+
+/* 确保拖拽元素可以正确定位 */
+.react-beautiful-dnd-draggable {
+  transform: translate(0, 0) !important;
+}
+
+/* 拖拽时的相关样式 */
+.row-dragging {
+  background: #fafafa;
+  z-index: 9999;
+}
+
+/* 确保拖拽的文本不可选中 */
+[data-rbd-drag-handle-draggable-id] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
