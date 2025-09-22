@@ -27,3 +27,6 @@
 
 ## 20250922 第二次提交代码包含的feature：
 初步使用react-beautiful-dnd实现表格表头字段可拖拽切换顺序（但是有问题，每个字段拖拽后，都是更换到表格左边第1个字段）
+
+## 20250922 第三次提交代码包含的feature：
+重构表格组件中的列拖拽更改顺序功能，不使用第三方组件实现（react-beautiful-dnd），而使用纯html+js方式实现，移除DroppableColumn，添加DraggableColumn以支持列拖拽功能，更新样式和HTML结构
