@@ -572,10 +572,16 @@ const Table: React.FC = () => {
     };
 
     const handleRowDrop = (from: number, to: number) => {
-          const newProducts = [...products];
-          const [moved] = newProducts.splice(from, 1);
-          newProducts.splice(to, 0, moved);
-          setProducts(newProducts);
+      // const newProducts = [...products];
+      // const [moved] = newProducts.splice(from, 1);
+      // newProducts.splice(to, 0, moved);
+      // setProducts(newProducts);
+      setProducts((prevProducts) => {
+        const updated = [...prevProducts];
+        const [moved] = updated.splice(from, 1);
+        updated.splice(to, 0, moved);
+        return updated;
+      });
     };
 
   return (
@@ -662,7 +668,7 @@ const Table: React.FC = () => {
                 return (
                     <Row index={index} 
                     columnsConfigs={fixedColumnsConfig} 
-                    key={product.id} 
+                    key={`${product.id}-${index}`} 
                     product={product} 
                     isEditing={isEditing} 
                     isSaving={isSaving} 
@@ -708,7 +714,7 @@ const Table: React.FC = () => {
                 return (
                     <Row index={index} 
                     columnsConfigs={scrollabledColumnsConfig} 
-                    key={product.id} 
+                    key={`${product.id}-${index}`}
                     product={product} 
                     isEditing={isEditing} 
                     isSaving={isSaving} 

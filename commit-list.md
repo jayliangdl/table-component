@@ -30,3 +30,6 @@
 
 ## 20250922 第三次提交代码包含的feature：
 重构表格组件中的列拖拽更改顺序功能，不使用第三方组件实现（react-beautiful-dnd），而使用纯html+js方式实现，移除DroppableColumn，添加DraggableColumn以支持列拖拽功能，更新样式和HTML结构
+
+## 20250923:
+重构表格组件（不再使用react-beautiful-dnd第三方包），移除DroppableRow，改为使用原生HTML+TS(JS)实现行拖拽功能（核心DraggableRow组件），更新样式和HTML结构，优化性能
