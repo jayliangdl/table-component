@@ -1,0 +1,15 @@
+/***
+ * 可拖拽行时在拖拽目标上添加的样式（将拖拽未放手时，目标展示的样式）
+ */
+.dragOver {
+  background-color: #e3e3e3 !important;
+  transition: background 0.2s;
+}
+
+/**
+  * 鼠标在可拖拽行时显示抓手光标
+  */
+.rowDraggable{
+  cursor: grab;
+  user-select: none;
+}

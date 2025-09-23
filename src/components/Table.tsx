@@ -4,12 +4,10 @@ import { generateMockProducts } from "../utils/mockData";
 import "./TableSample.module.css";
 import {sampleColumnsConfig,sampleFixedColumnsNames,sampleScrollabledColumnsNames} from "../types/editableCell";
 import { type Id} from "../types/id";
-import { type RecordData,saveRecord} from "../service/RecordService"
-import { type DropResult,type DragUpdate } from "react-beautiful-dnd";
-import DroppableRow from "./DroppableRow";
+import { type RecordData,saveRecord} from "../service/RecordService";
 import DraggableColumn from "./DraggableColumn";
 import type { ColumnConfig } from "../types/editableCell";
-
+import Row from "./Row";
 const Table: React.FC = () => {
 
   const onRenderCallback = (
@@ -149,8 +147,7 @@ const Table: React.FC = () => {
             totalWidth += width;
           });
 
-          // 添加一些额外的缓冲空间（10%）确保不会过紧
-          const bufferWidth = Math.max(totalWidth * 0.1, 100);
+          const bufferWidth = 0;
           const newMinWidth = totalWidth + bufferWidth;
 
           setScrollableTableMinWidth(newMinWidth);
@@ -293,16 +290,6 @@ const Table: React.FC = () => {
         scrollableContainer.style.paddingBottom = "0px";
         // console.debug('两侧都没有滚动条，无需补偿');
       }
-
-      //检测右则表格是否有水平滚动条
-      // const hasScrollBar = hasHorizontalScrollBar(scrollableContainer);
-      // //获得水平滚动条的高度
-      // const scrollbarHeight = hasScrollBar?getHorizontalScrollBarHeight():0;
-      // fixedContainer.style.paddingBottom = `${scrollbarHeight}px`;
-      // if(scrollbarHeight>0){
-      //   fixedContainer.style.boxSizing = "border-box";
-      // }
-      // console.debug(`hasScrollBar: ${hasScrollBar}, scrollbarHeight: ${scrollbarHeight}px`);
     };
 
     const createScrollHandler = (source: "fixed" | "scrollable") => {
@@ -577,42 +564,6 @@ const Table: React.FC = () => {
       handleSaveLocal(recordId.toString(), newRow);
     },[]);
 
-    const handleDragEnd = (result: DropResult) => {
-      if (!result.destination) return;
-
-      const reorderedProducts = Array.from(products);
-      const [movedProduct] = reorderedProducts.splice(result.source.index, 1);
-      reorderedProducts.splice(result.destination.index, 0, movedProduct);
-
-      setProducts(reorderedProducts);
-      //清除拖拽状态
-      setDraggingRowId(null);
-      setDraggingRowIndex(null);
-    };
-
-    const [draggingRowId, setDraggingRowId] = useState<Id | null>(null);
-    const [draggingRowIndex, setDraggingRowIndex] = useState<number | null>(null);
-
-    const handleDragUpdate = (update:DragUpdate)=>{
-      if(update.draggableId){
-        setDraggingRowId(update.draggableId);
-        setDraggingRowIndex(update.source.index);
-      }
-    }
-
-    /**
-     * 
-     * @param data 外部传入新的数据，重置当前的数据源
-     * 主要用于记录被拖拽更改顺序后，重置表格记录数据源
-     */
-    const resetDatasourceAfterRowDrop = (data:any[]) => {
-      setProducts(data);
-    }
-
-    const resetDatasourceAfterColumnDrop=(data:ColumnConfig[])=>{
-      setScrollabledColumnsConfig(data);
-    }
-
     const handleColumnDrop = (from: number, to: number) => {
       const newCols = [...scrollabledColumnsConfig];
       const [moved] = newCols.splice(from, 1);
@@ -620,6 +571,12 @@ const Table: React.FC = () => {
       setScrollabledColumnsConfig(newCols);
     };
 
+    const handleRowDrop = (from: number, to: number) => {
+          const newProducts = [...products];
+          const [moved] = newProducts.splice(from, 1);
+          newProducts.splice(to, 0, moved);
+          setProducts(newProducts);
+    };
 
   return (
     <div
@@ -696,39 +653,26 @@ const Table: React.FC = () => {
                     }
                   )
                 }
-                {/* <th style={getHeaderStyle({ width: "200px" })}>操作</th> */}
               </tr>
             </thead>
-            <DroppableRow products={products} 
-              columnsConfigs={fixedColumnsConfig} 
-              handleSave={handleSave}
-              handleEdit={handleEdit}
-              handleCancel={handleCancel}
-              handleDelete={handleDelete}
-              resetDatasource={resetDatasourceAfterRowDrop}
-            />
-            {/* <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
-              <Droppable droppableId="table-body">
-                {(provided) => (
-            <tbody ref={provided.innerRef} {...provided.droppableProps}>
-              {products.map((product,index) => {
+            <tbody>
+                {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
                 return (
-
-                  <Row index={index} columnsConfigs={fixedColumnsConfig} 
-                  key={product.id} product={product} isEditing={isEditing} isSaving={isSaving} 
-                  onSave={handleSave} onEdit={handleEdit} 
-                  onCancel={handleCancel} onDelete={handleDelete}
-                  isDragging={draggingRowId===`row-${product.id}`}
-                  />                  
+                    <Row index={index} 
+                    columnsConfigs={fixedColumnsConfig} 
+                    key={product.id} 
+                    product={product} 
+                    isEditing={isEditing} 
+                    isSaving={isSaving} 
+                    onSave={handleSave} onEdit={handleEdit}
+                    onCancel={handleCancel} onDelete={handleDelete}
+                    onColumnDrop={handleRowDrop}
+                    />                  
                 );
-              })}
-              {provided.placeholder}
-            </tbody>
-            )}
-            </Droppable>
-            </DragDropContext> */}
+                })}
+              </tbody>
           </table>
         </div>
         <div
@@ -755,40 +699,10 @@ const Table: React.FC = () => {
               // borderCollapse: "collapse",
             }}
           >
-            {/* <thead>
-              <tr
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  position: "sticky", // Jay-固定表头，重要~！
-                  top: 0, // Jay-固定在顶部，重要~！
-                  zIndex: 1, // 确保在内容之上
-                }}
-              >
-                {
-                  scrollabledColumnsConfig.map(
-                    (col) => {
-                      const style=col.style?{...col.style}:{};
-                      return (<th key={col.columnName} style={getHeaderStyle(style)}>{col.title}</th>)
-                    }
-                  )
-                }
-              </tr>
-            </thead> */}
             <DraggableColumn columnsConfigs={scrollabledColumnsConfig} onColumnDrop={handleColumnDrop} />
-            {/* <DroppableColumn columnsConfigs={scrollabledColumnsConfig} resetDatasource={resetDatasourceAfterColumnDrop}/> */}
-            <DroppableRow products={products} 
-              columnsConfigs={scrollabledColumnsConfig} 
-              handleSave={handleSave}
-              handleEdit={handleEdit}
-              handleCancel={handleCancel}
-              handleDelete={handleDelete}
-              resetDatasource={resetDatasourceAfterRowDrop}
-            />
-            {/* <DragDropContext onDragEnd={handleDragEnd} onDragUpdate={handleDragUpdate}>
-              <Droppable droppableId="table-body">
-                {(provided) => (
-            <tbody ref={provided.innerRef} {...provided.droppableProps}>
-              {products.map((product,index) => {
+            
+            <tbody>
+                {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
                 const isSaving = product?.isSaving ? true : false;
                 return (
@@ -796,17 +710,15 @@ const Table: React.FC = () => {
                     columnsConfigs={scrollabledColumnsConfig} 
                     key={product.id} 
                     product={product} 
-                    isEditing={isEditing} isSaving={isSaving} 
-                    isDragging={draggingRowId===`row-${product.id}`}
-                  onSave={handleSave} onEdit={handleEdit}
-                  onCancel={handleCancel} onDelete={handleDelete}
-                  />                  
+                    isEditing={isEditing} 
+                    isSaving={isSaving} 
+                    onSave={handleSave} onEdit={handleEdit}
+                    onCancel={handleCancel} onDelete={handleDelete}
+                    onColumnDrop={handleRowDrop}
+                    />                  
                 );
-              })}
-            </tbody>
-            )}
-            </Droppable>
-            </DragDropContext> */}
+                })}
+              </tbody>
           </table>
         </div>
       </div>

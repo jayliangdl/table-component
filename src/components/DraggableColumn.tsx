@@ -69,7 +69,8 @@ const DraggableColumn: React.FC<DraggableColumnProps> = ({
       >
         {columnsConfigs.map((columnConfig, index) => {
           return (
-            <th className={styles.thDraggable} draggable="true" ref={(el) => (thRefs.current[index] = el)}>
+            <th className={styles.thDraggable} draggable="true" 
+            ref={(el) => (thRefs.current[index] = el)}>
               <span>{columnConfig.title}</span>
             </th>
           );

@@ -1,7 +1,14 @@
+/***
+ * 可拖拽列时在拖拽目标上添加的样式（将拖拽未放手时，目标展示的样式）
+ */
 .dragOver {
   background-color: #e3e3e3 !important;
   transition: background 0.2s;
 }
+
+/**
+  * 鼠标在可拖拽列时显示抓手光标
+  */
 .thDraggable{
   cursor: grab;
   user-select: none;
