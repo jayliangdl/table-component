@@ -18,11 +18,14 @@ interface BaseCellProps {
 
 export interface RowCore2Props {
   product: Product;
+  isEditing: boolean;
+  isSaving: boolean;
   columnsConfig: ColumnConfig[];
   indentW: number;
   freezeCount: number;
-  accLeft: number; // Add accLeft if needed for sticky columns
   draggable?: boolean; // 是否可拖拽
+  style?: React.CSSProperties;
+  className?:string; //用于拖拽时的样式
 }
 
 // —— 基础单元格（纯内联样式）
@@ -52,38 +55,50 @@ function BaseCell({ children, width, left, sticky,draggable}: BaseCellProps) {
 const RowCore2= React.forwardRef<HTMLDivElement, RowCore2Props>((rowProps,ref) => {
     const {    
         product, 
+        isEditing,
+        isSaving,
         columnsConfig,
         indentW, 
         freezeCount,
         draggable,
+        style,
+        className,
     } = rowProps;
 
-    let accLeft = 0;
+    const lefts: Array<number | undefined> = [];
+    let pos = indentW;
+    for (let i = 0; i < columnsConfig.length; i++) {
+        if (i < freezeCount) {
+        lefts[i] = pos;
+        pos += toPx(columnsConfig[i].style?.width, COLUMN_DEFAULT_WIDTH);
+        } else {
+        lefts[i] = undefined;
+        }
+    }
     return (
-    <div ref={ref}>
+    <div style={{ ...style, display: "flex"}} ref={ref} className={className}>
         {/* 缩进占位列（冻结） */}
-        <BaseCell width={indentW} left={accLeft} draggable={draggable} sticky />
-        {(accLeft += indentW)}
+        <BaseCell width={indentW} left={0} draggable={draggable} sticky />
         {            
             columnsConfig.map((col,ci) => {
                 const w = toPx(col.style?.width,COLUMN_DEFAULT_WIDTH);
                 const value = (product as any)[col.columnName];
-                const isFreezeColumn = ci < freezeCount;
+                const isFreezeColumn = ci < freezeCount;  
                 const cell = (
                     <BaseCell 
                     width={w}
                     key={`${product.id}-${col.columnName}`}
-                        left={isFreezeColumn ? accLeft : undefined}
+                        left={isFreezeColumn ? lefts[ci] : undefined}
                         sticky={isFreezeColumn}
                     draggable={draggable}
                     >
                     {value as React.ReactNode}
                     </BaseCell>
                 );
-                accLeft += w;
                 return cell;
             })
         }
-    </div>)
+    </div>    
+    )
 });
 export default RowCore2;

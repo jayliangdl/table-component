@@ -13,6 +13,14 @@ import {type ColumnRefreshActionConfigProps} from "../service/subscribesAction/C
 // —— 类型定义
 export type Width = number | `${number}px`;
 
+/**
+ * 定义某笔记录所在的分组路径
+ */
+export interface UnderGroupsProps {
+    columnName:string;
+    value:any;
+}
+
 //可监听的事件名称枚举
 export const EventName = {
   onFocus: 'ON_FOCUS',
