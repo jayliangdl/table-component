@@ -1,7 +1,9 @@
-import React from "react";
+import React,{useEffect} from "react";
 import {DatePicker} from "antd";
 import { type CommonCustomComponentProps } from "../../types/editableCell";
 import { safeDayjs } from '../../utils/convert';
+import {EventName} from "../../types/editableCell";
+import {columnChangeBaseHandler} from "../../service/EventService";
 export interface DatetimeConfigProps {
     // 可以根据需要添加更多配置项
     format?:string; //日期格式，参考dayjs格式
@@ -11,10 +13,16 @@ interface CustomDatetimeNumberProps extends CommonCustomComponentProps{
     config: DatetimeConfigProps;
 }
 
+const convertToDayjs = (value:string, defaultFormat:string,format?:string)=>{            
+    const dateValue = safeDayjs(value,format?format:defaultFormat);
+    return dateValue;
+}
+
 const CustomDatetime: React.FC<CustomDatetimeNumberProps> = ({
     columnName,
+    recordId,
     config,
-    defaultValue,
+    value,
     disabled,
     readOnly,
     style,
@@ -22,14 +30,41 @@ const CustomDatetime: React.FC<CustomDatetimeNumberProps> = ({
     onValueChanged,
 }) => {
     const handleChange= (value:string|string[]): void=>{
+        columnChangeBaseHandler(
+            {
+                eventName:`${EventName.onChange}__${columnName}`,
+                columnName:columnName,
+                recordId:recordId,
+                newValue:value,
+                oldValue:originalValue,
+                setValue:setOriginalValue,
+            }
+        );
         // 在这里实现你的变化逻辑
         onValueChanged(value);
     };
-    const format = (config?.format)?config?.format:"YYYY-MM-DD HH:mm:ss";            
-    const dateValue = safeDayjs(defaultValue,format);
-    const ret = <DatePicker showTime defaultValue={dateValue} disabled={disabled} readOnly={readOnly} 
+    const defaultFormat = "YYYY-MM-DD HH:mm:ss";
+    const [originalValue, setOriginalValue] = React.useState<any>(
+        (value:string)=>{
+            return convertToDayjs(value,defaultFormat,config?.format);
+        }
+    );
+    const [currentValue, setCurrentValue] = React.useState<any>(
+        (value:string)=>{
+            return convertToDayjs(value,defaultFormat,config?.format);
+        }
+    );
+    const [format,setFormat] = React.useState<string>((config?.format)?config?.format:defaultFormat);
+    useEffect(()=>{
+        setFormat((config?.format)?config?.format:defaultFormat);
+        setCurrentValue((_prev:string)=>{
+            return convertToDayjs(value,defaultFormat,config?.format);
+        });
+    },[value, config?.format]);    
+
+    const ret = <DatePicker showTime value={currentValue} disabled={disabled} readOnly={readOnly} 
                 style={style} placeholder={placeholder} format={format}
-                onChange={(_date,dateString)=>handleChange(dateString)}             
+                onChange={(_date,dateString)=>handleChange(dateString)}            
                 />;
     
     return ret;

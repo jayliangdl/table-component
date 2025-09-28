@@ -33,3 +33,8 @@
 
 ## 20250923:
 重构表格组件（不再使用react-beautiful-dnd第三方包），移除DroppableRow，改为使用原生HTML+TS(JS)实现行拖拽功能（核心DraggableRow组件），更新样式和HTML结构，优化性能
+
+## 20250928:
+-实现了 Table2 组件，用于渲染带有分组数据、固定表头和固定列的表格。新的Table2组件是用<div>实现表格，而不是像之前Table组件使用<table>，主要是发现数据分类展示上原Table组件无法满足。所以再开发一个新的Table2组件。
+-建立了 EventService，用于管理事件订阅和触发。
+-添加了 ColumnRefresh 和 DataFetch 操作处理器，用于动态更新数据。

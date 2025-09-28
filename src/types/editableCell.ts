@@ -6,6 +6,29 @@ import {type InputNumberConfigProps} from '../components/baseComponent/CustomInp
 import {type SelectConfigProps} from '../components/baseComponent/CustomSelect';
 import {type TextareaConfigProps} from '../components/baseComponent/CustomTextarea';
 import {type CheckboxConfigProps} from '../components/baseComponent/CustomCheckbox';
+import { type Id } from "./id";
+import {type FetchDataActionConfigProps} from "../service/subscribesAction/DataFetch";
+import {type ColumnRefreshActionConfigProps} from "../service/subscribesAction/ColumnRefresh";
+
+// —— 类型定义
+export type Width = number | `${number}px`;
+
+//可监听的事件名称枚举
+export const EventName = {
+  onFocus: 'ON_FOCUS',
+  onBlur: 'ON_BLUR',
+  onChange:'ON_CHANEG',  
+  onDataFetched: 'ON_DATA_FETCHED',
+} as const;
+
+export type EventName = typeof EventName[keyof typeof EventName];
+export interface EventData_OnBlur{
+
+  columnName:string|undefined,
+  recordId:Id,
+  newValue:any,
+  oldValue:any,
+}
 
 export type EditConfig = InputConfigProps|InputNumberConfigProps|TextareaConfigProps|SelectConfigProps|DateConfigProps|DatetimeConfigProps|CheckboxConfigProps;
 
@@ -19,7 +42,8 @@ export interface SelectOptionProps{
 
 export interface CommonCustomComponentProps{
     columnName: string;
-    defaultValue?: any;
+	recordId: Id;
+    value?: any;
     disabled?: boolean;
     readOnly?: boolean;
     placeholder?:string;  
@@ -40,12 +64,57 @@ export interface ColumnConfig{
     options?: SelectOptionProps[] | {dataSourceFetchUrl:string,labelFieldName:string,valueFieldName:string}; //下拉选项，支持静态数组或远程数据源配置
     displayConfig: DisplayConfig; //显示配置，针对不同类型有不同配置项，比如boolean类型可以配置true/false的标签文本等
 	style?: React.CSSProperties; //列样式
+	/**
+	 * 此处描述本字段要监听的事件
+	 * 例如，在“产品编号字段输入后（光标视角），触发获取产品信息”的场景中，在“产品编号”字段的列配置中，可以配置：
+	 * ```
+	 * subscribes:[
+	 * 		{
+	 *    		eventName: EventName.onBlur; //监听失去焦点事件
+	 *    		actionType: "fetchData"; //事件触发时，执行获取数据的动作
+	 *    		actionConfig: {
+	 * 	      		url: "/api/getProductInfo", //获取数据的URL
+	 * 	      		method: "GET", //请求方法
+	 * 	      		headers: {}, //请求头
+	 * 	      		params: { productId: "{value}" }, //请求参数，{value}表示当前字段的值
+	 *    		}
+	 * 		}
+	 * 	]
+	 * }
+	 * ```
+	 * 然后在事件触发时，执行获取产品信息的逻辑
+	 */
+	subscribes?:ColumnEventSubscribeConfig[]; //列事件监听配置
 }
 
-// export const sampleFixedColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions"];
-// export const sampleScrollabledColumnsNames = ["weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
-export const sampleFixedColumnsNames = ["xxxxxxxxxxxxxxxxx"];
-export const sampleScrollabledColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions","weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
+
+
+export interface ColumnEventSubscribeConfig
+{
+	eventName: string; //要监听的事件名称
+	actionType: ActionType; //事件触发时的动作类型，fetchData表示获取数据，todo:otherActionType表示其他动作（TODO:待补充）
+	actionConfig?:ActionConfig; //事件触发时的动作配置，例如fetchData时，配置获取数据的URL等
+}
+
+export const ActionType = {
+	dataFetch:"dataFetch",
+	columnRefresh:"columnRefresh",
+	todo_otherAction: "todo:otherActionType"
+};
+export type ActionType = typeof ActionType[keyof typeof ActionType];
+
+export type ActionConfig = FetchDataActionConfigProps|ColumnRefreshActionConfigProps|"todo:otherActionConfig"; 
+
+export const sampleFixedColumnsNames = ["id","name","category","brand","model","price","cost","stock","isGift","actions"];
+export const sampleScrollabledColumnsNames = ["weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"];
+// export const sampleFixedColumnsNames = ["xxxxxxxxxxxxxxxxx"];
+// export const sampleScrollabledColumnsNames = ["id","name",
+// 	"category","brand","model",
+// 	"price",
+// 	"cost","stock","isGift",
+// 	"actions",
+// 	"weight","dimensions","color","material","origin","releaseDate","createdAt","shippingTime","warranty","rating","description"
+// ];
 export const sampleColumnsConfig: ColumnConfig[]= [{
 		title: "ID",
 		dataIndex: "id",
@@ -56,7 +125,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			type: 'text'
 		},
 		style:{
-			width: "100px",
+			width: "40px",
 		}
 	},
 	{
@@ -70,7 +139,21 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 		},
 		style:{
 			minWidth: "180px",
-		}
+			width: "180px",
+		},
+		subscribes:[
+			{
+				eventName: EventName.onBlur,
+				actionType: ActionType.dataFetch,
+				actionConfig: {
+					mainUrl: "/api/user",
+					method: "POST",
+					headers: {},
+					bodyTemplate:"{\"name\":\"{name}\"}",	
+					notificationSuffix:"PRODUCT"				
+				}
+			}
+		]
 	},
 	{
 		title: "分类",
@@ -97,7 +180,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
             allowClear: true
         },
 		style:{
-			minWidth: "180px",
+			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	// { 
@@ -136,6 +220,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
         },
 		style:{
 			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	{
@@ -164,6 +249,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
         },
 		style:{
 			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	{
@@ -180,14 +266,24 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 		},
         editConfig: {
             "min":100,
-            "max":10000,
+            "max":1000000,
             "step":1,
             "precision":2,
 			"prefix":"¥"
         },
 		style:{
-			minWidth: "80px",
-		}
+			minWidth: "120px",
+			width: "120px",
+		},
+		subscribes:[
+			{
+				eventName: EventName.onDataFetched+"__PRODUCT",
+				actionType: ActionType.columnRefresh,
+				actionConfig: {
+					sourceField:"money",
+				}
+			}
+		]
 	},
 	{
 		title: "成本(¥)",
@@ -210,6 +306,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
         },
 		style:{
 			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	{
@@ -224,6 +321,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 		},
 		style:{
 			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	{
@@ -244,6 +342,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
         },
 		style:{
 			minWidth: "80px",
+			width: "80px",
 		}
 	},
 	{
@@ -258,6 +357,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 		},
 		style:{
 			minWidth: "50px",
+			width: "50px",
 		}
 	},
 	{
@@ -398,6 +498,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 		},
 		style:{
 			minWidth: "800px",
+			width: "800px",
 		}
 	},
 	{

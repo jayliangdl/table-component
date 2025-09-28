@@ -66,3 +66,18 @@ export const formatDateTimeValue = (value: any, format = 'HH:mm:ss HH:mm:ss'): s
   const date = safeDayjs(value,format);
   return date ? date.format(format) : '';
 };
+
+
+/**
+ * 传入一个宽度或高度值（可以是number类型；也可以是类似"123px"字符串型，自动转为123），返回对应的数字像素值
+ * 若wOrH传入undefined，则返回默认宽度
+ * @param wOrH number | string | undefined
+ * @param defaultValue 若wOrH传入undefined时，返回的默认值
+ * @returns 
+ */
+export const toPx = (wOrH: number | string | undefined,defaultValue:number): number => {
+    const v = wOrH === undefined ? defaultValue
+        : typeof wOrH === "number" ? wOrH
+            : typeof wOrH === "string" && wOrH.endsWith("px") ? parseInt(wOrH, 10) : defaultValue;
+    return v;
+}

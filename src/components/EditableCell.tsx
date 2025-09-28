@@ -94,108 +94,110 @@ export const EditableCell:React.FC<EditableCellProps> = ({
     // }
 
     if(type!=="actionButton"){
-    const commonProps = {
-        disabled,
-        readOnly,
-        style: { ...style },
-        placeholder,
-        onChange: (e:any)=>Promise<void>
-    };
-    if(isSaving){
-        commonProps.disabled = true;
-        commonProps.readOnly = true;
-    }else{
-        commonProps.disabled = disabled;
-        commonProps.readOnly = readOnly;
-    }
-
-    switch(type){
-        case 'text':{
-            const inputConfig: InputConfigProps = columnEditConfig as InputConfigProps;
-            const ret = (<CustomInput columnName={columnName}
-                {...commonProps}                
-                defaultValue={currentValue}
-                config={inputConfig}
-                onValueChanged={handleValueChanged}
-                />);
-            return ret;
+        const commonProps = {
+            recordId,
+            disabled,
+            readOnly,
+            style: { ...style },
+            placeholder,
+            onChange: (e:any)=>Promise<void>
+        };
+        if(isSaving){
+            commonProps.disabled = true;
+            commonProps.readOnly = true;
+        }else{
+            commonProps.disabled = disabled;
+            commonProps.readOnly = readOnly;
         }
-        case 'number':{
-            const inputNumberConfig: InputNumberConfigProps = columnEditConfig as InputNumberConfigProps;
-            return (<CustomInputNumber columnName={columnName}
+
+        switch(type){
+            case 'text':{
+                const inputConfig: InputConfigProps = columnEditConfig as InputConfigProps;
+                const ret = (<CustomInput columnName={columnName}
                     {...commonProps}                
-                    defaultValue={currentValue}
-                    config={inputNumberConfig}
+                    value={currentValue}
+                    config={inputConfig}
+                    onValueChanged={handleValueChanged}
+                    
+                    />);
+                return ret;
+            }
+            case 'number':{
+                const inputNumberConfig: InputNumberConfigProps = columnEditConfig as InputNumberConfigProps;
+                return (<CustomInputNumber columnName={columnName}
+                        {...commonProps}                
+                        value={currentValue}
+                        config={inputNumberConfig}
+                        onValueChanged={handleValueChanged}
+                        />);
+            }
+            case 'date':{
+                const dateConfig:DateConfigProps = columnEditConfig as DateConfigProps;
+                const ret = (<CustomDate columnName={columnName}
+                    {...commonProps}                
+                    value={currentValue}
+                    onValueChanged={handleValueChanged}
+                    config={dateConfig}
+                    />);
+                return ret;
+            }
+            case 'time':{
+                const timeConfig:TimeConfigProps = columnEditConfig as TimeConfigProps;
+                const ret = (<CustomTime columnName={columnName}
+                    {...commonProps}            
+                    onValueChanged={handleValueChanged}    
+                    value={currentValue}
+                    config={timeConfig}
+                    />);
+                return ret;         
+            }      
+            case 'datetime':{
+                const datetimeConfig:DatetimeConfigProps = columnEditConfig as DatetimeConfigProps;
+                const ret = (<CustomDatetime columnName={columnName}
+                    {...commonProps}              
+                    onValueChanged={handleValueChanged}  
+                    value={currentValue}
+                    config={datetimeConfig}
+                    />);
+                return ret;
+            }
+            case 'boolean':{
+                const checkboxConfig:CheckboxConfigProps = columnEditConfig as CheckboxConfigProps;
+                const ret = (
+                    <CustomCheckbox 
+                        columnName={columnName} 
+                        {...commonProps} 
+                        value={currentValue} 
+                        config={checkboxConfig}
+                        onValueChanged={handleValueChanged}
+                    />)
+                return ret;            
+            }
+            case 'select':{
+                // const isMultiple = select?.mode === 'multiple' || select?.mode === 'tags';//Jay-TODO: 这里需要进一步确认
+                //const selectValue = isMultiple?Array.isArray(value)?value:value?[value]:[]:value??undefined;//Jay-TODO: 这里需要进一步确认
+                const selectConfig:SelectConfigProps = columnEditConfig as SelectConfigProps;
+                const ret = (<CustomSelect columnName={columnName}
+                    {...commonProps}
+                    config={selectConfig}
+                    value={currentValue}
                     onValueChanged={handleValueChanged}
                     />);
-        }
-        case 'date':{
-            const dateConfig:DateConfigProps = columnEditConfig as DateConfigProps;
-            const ret = (<CustomDate columnName={columnName}
-                {...commonProps}                
-                defaultValue={currentValue}
-                onValueChanged={handleValueChanged}
-                config={dateConfig}
-                />);
-            return ret;
-        }
-        case 'time':{
-            const timeConfig:TimeConfigProps = columnEditConfig as TimeConfigProps;
-            const ret = (<CustomTime columnName={columnName}
-                {...commonProps}            
-                onValueChanged={handleValueChanged}    
-                defaultValue={currentValue}
-                config={timeConfig}
-                />);
-            return ret;         
-        }      
-        case 'datetime':{
-            const datetimeConfig:DatetimeConfigProps = columnEditConfig as DatetimeConfigProps;
-            const ret = (<CustomDatetime columnName={columnName}
-                {...commonProps}              
-                onValueChanged={handleValueChanged}  
-                defaultValue={currentValue}
-                config={datetimeConfig}
-                />);
-            return ret;
-        }
-        case 'boolean':{
-            const checkboxConfig:CheckboxConfigProps = columnEditConfig as CheckboxConfigProps;
-            const ret = (
-                <CustomCheckbox 
-                    columnName={columnName} 
-                    {...commonProps} 
-                    defaultValue={currentValue} 
-                    config={checkboxConfig}
+                return ret;
+            }
+            case 'textarea':{            
+                const textareaConfig:TextareaConfigProps = columnEditConfig as TextareaConfigProps;
+                const ret = (<CustomTextarea columnName={columnName}
+                    {...commonProps}                
+                    value={currentValue} 
                     onValueChanged={handleValueChanged}
-                />)
-            return ret;            
+                    config={textareaConfig}
+                    />);
+                return ret; 
+            }
+            default:
+                throw Error(`Unsupported editable cell type: ${type}`);
         }
-        case 'select':{
-            // const isMultiple = select?.mode === 'multiple' || select?.mode === 'tags';//Jay-TODO: 这里需要进一步确认
-            //const selectValue = isMultiple?Array.isArray(value)?value:value?[value]:[]:value??undefined;//Jay-TODO: 这里需要进一步确认
-            const selectConfig:SelectConfigProps = columnEditConfig as SelectConfigProps;
-            const ret = (<CustomSelect columnName={columnName}
-                {...commonProps}
-                config={selectConfig}
-                defaultValue={currentValue}
-                onValueChanged={handleValueChanged}
-                />);
-            return ret;
-        }
-        case 'textarea':{            
-            const textareaConfig:TextareaConfigProps = columnEditConfig as TextareaConfigProps;
-            const ret = (<CustomTextarea columnName={columnName}
-                {...commonProps}                
-                defaultValue={currentValue} 
-                onValueChanged={handleValueChanged}
-                config={textareaConfig}
-                />);
-            return ret; 
-        }
-        default:
-            throw Error(`Unsupported editable cell type: ${type}`);
-    }
     }
     if(type==="actionButton"){
         const ret = (<ActionButton

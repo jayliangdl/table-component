@@ -49,7 +49,6 @@ const RowCore= forwardRef<HTMLTableRowElement, RowCoreProps>((rowProps,ref) => {
     draggable,
   } = rowProps;
 
-
   React.useEffect(() => {
     console.debug(`Row组件实例重现渲染，组件参数: productId=${product.id}`);
   });
@@ -123,7 +122,8 @@ const RowCore= forwardRef<HTMLTableRowElement, RowCoreProps>((rowProps,ref) => {
             const readOnly = col.readOnly;
              return (
              <td key={col.columnName} style={getContentStyle(style)}>
-                <EditableCell columnEditConfig={col.editConfig}                  
+                <EditableCell key={`${col.columnName}-${currentRowData.id}`}
+                  columnEditConfig={col.editConfig}                                   
                   columnName={col.columnName}
                   recordId={currentRowData.id}
                   style={style}

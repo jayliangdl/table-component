@@ -8,6 +8,9 @@ import DraggableRow from "./DraggableRow";
  * 所以定义了以下函数，仅当只有在 product 或 columnsConfigs 或 isEditing 发生变化时才重新渲染组件。
  */
 export default React.memo(DraggableRow, (prevProps, nextProps) => {
-  return prevProps.product === nextProps.product && prevProps.columnsConfigs===nextProps.columnsConfigs
+  const ret = prevProps.product === nextProps.product && prevProps.columnsConfigs===nextProps.columnsConfigs
   && prevProps.isEditing === nextProps.isEditing;
+  return ret;
 });
+
+// export default React.memo(DraggableRow)

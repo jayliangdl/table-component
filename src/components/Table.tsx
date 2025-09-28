@@ -8,20 +8,8 @@ import { type RecordData,saveRecord} from "../service/RecordService";
 import DraggableColumn from "./DraggableColumn";
 import type { ColumnConfig } from "../types/editableCell";
 import Row from "./Row";
+import {substribeColumnEvent} from "../service/EventService"
 const Table: React.FC = () => {
-
-  const onRenderCallback = (
-    id:any, // 发生提交的 Profiler 树的 id
-    phase:any, // "mount" 或 "update"
-    actualDuration:any, // 本次更新渲染时间
-    baseDuration:any, // 理论上最优渲染时间
-    startTime:any, // 本次更新开始时间
-    commitTime:any, // 本次更新结束时间
-    interactions:any // 本次更新的交互
-  ) => {
-    console.log(`Profiler [${id}] - Phase: ${phase}, Actual Duration: ${actualDuration}ms`);
-  };
-
   const [products, setProducts] = useState<ProductInUI[]>([]);
   const [fixTableMinWidth, setFixTableMinWidth] = useState<number>(0); // 默认值
   const [scrollableTableMinWidth, setScrollableTableMinWidth] =
@@ -59,6 +47,9 @@ const Table: React.FC = () => {
     setScrollabledColumnsConfig(scrollabledColumnsConfig);
   },[]);
 
+  /**
+   * 从后台读出表格要展示的数据
+   */
   useEffect(() => {
     // 生成测试数据 - 增加到80条以便展示更多内容
     const mockProducts = generateMockProducts(80);
@@ -74,8 +65,27 @@ const Table: React.FC = () => {
     }));
     setProducts(mockProductsInUI);
   }, []);
+
+  /**
+   * 订阅表格中所有列的事件
+   */
+  useEffect(()=>{
+    const columnsConfig = fixedColumnsConfig.concat(scrollabledColumnsConfig);
+    const unsubscribes = substribeColumnEvent(columnsConfig,handleProductColumnChange);
+    return ()=>{
+      if(unsubscribes===undefined || unsubscribes.length===0){
+        return;
+      }
+      // 组件卸载时取消订阅所有事件
+      unsubscribes.forEach(unsubscribe => unsubscribe());
+    } 
+  },[fixedColumnsConfig,scrollabledColumnsConfig]);
   /**
    * 获取水平滚动条的高度
+   * 背景：由于使用了水平双表格实现表格冻结功能（左表格中的列为固定冻结列，右表格中的列为滚动列）
+   * 问题：右侧表格可能有水平滚动条，而左侧没有，导致两侧表格高度不一致
+   * 解决方案：需要获取滚动条的高度，给没有滚动条的一侧添加等高的paddingBottom补偿
+   * 本方法用于计算水平滚动条高度
    */
   const getHorizontalScrollBarHeight = (): number => {
     const outer = document.createElement("div");
@@ -105,6 +115,8 @@ const Table: React.FC = () => {
     return element.scrollWidth > element.clientWidth;
   };
 
+
+
   /**
    * 动态计算表格最小宽度
    * 逻辑：通过获取表格中所有的th元素，并累计他们的宽度（offsetWidth）+ 少量bufferWidth
@@ -123,7 +135,7 @@ const Table: React.FC = () => {
             totalWidth += width;
           });
 
-          // 添加一些额外的缓冲空间（10%）确保不会过紧
+          // 添加一些额外的缓冲空间（例如，10%。目前是0%）确保不会过紧
           // const bufferWidth = Math.max(totalWidth * 0.1, 100);
           const bufferWidth = 0;
           const newMinWidth = totalWidth + bufferWidth;
@@ -473,6 +485,20 @@ const Table: React.FC = () => {
     });
   },[products]);
 
+  const handleProductColumnChange = (recordId:Id,columnName:string,newValue:any):void=>{
+    setProducts((prevProducts) =>{
+      const newProducts = prevProducts.map((product) =>{
+        if(product.id === recordId){
+          const updatedProduct = { ...product, [columnName]: newValue } as ProductInUI;          
+          return updatedProduct;
+        }else{
+          return product;
+        }
+      });
+      return newProducts;        
+    }
+  )};
+
   /**
    * 用户点击编辑按钮时，触发的方法
    * 要实现的逻辑包括：
@@ -626,7 +652,7 @@ const Table: React.FC = () => {
           style={{
             width: `${fixTableContainerMinWidth.toFixed(0)}px`,
             overflowY: "hidden", // 隐藏垂直滚动条
-            overflowX: "hidden", // 🔑 关键：隐藏水平滚动条，防止左侧表格出现滚动条
+            overflowX: "hidden", // 🔑 关键：隐藏水平滚动条，防止左侧表格出现水平滚动条
             flexShrink: 0, // 防止固定表格被压缩
             boxSizing: "border-box",
           }}
@@ -664,7 +690,7 @@ const Table: React.FC = () => {
             <tbody>
                 {products.map((product,index) => {
                 const isEditing = product?.isEditing ? true : false;
-                const isSaving = product?.isSaving ? true : false;
+                const isSaving = product?.isSaving ? true : false;        
                 return (
                     <Row index={index} 
                     columnsConfigs={fixedColumnsConfig} 

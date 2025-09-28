@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>分组可滚动表格（div模拟）</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+      }
+      .main-scroll {
+        height: 100vh;
+        overflow: auto;
+        background: #fefdfd;
+      }
+      .group-title {
+        position: sticky;
+        left: 0;
+        background: #f7f7fa;
+        font-weight: bold;
+        font-size: 16px;
+        padding: 10px 20px;
+        z-index: 30;
+        border-bottom: 1px solid #ccc;
+        margin-left: 0;
+      }
+      .table-header {
+        display: flex;
+        position: sticky;
+        top: 68px;
+        background: #fafafa;
+        z-index: 10;
+        border-bottom: 1px solid #ddd;
+      }
+      .table-row {
+        display: flex;
+        border-bottom: 1px solid #eee;
+        background: #fff;
+      }
+      .cell {
+        padding: 6px 12px;
+        border-right: 1px solid #eee;
+        white-space: nowrap;
+        background: inherit;
+        box-sizing: border-box;
+        overflow: hidden;
+        font-size: 13px;
+      }
+      .cell-indent {
+        border-right: 0 !important;
+        background: inherit;
+      }
+      /* 冻结前n列 */
+      .sticky-cell {
+        position: sticky;
+        background: #f7f7fa;
+        z-index: 5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-scroll">
+      <!-- JS会动态插入分组内容 -->
+    </div>
+    <script>
+      // 字段定义
+      const columns = [
+        //   { key: 'indent', label: '',width: '50px' },
+        { key: "id", label: "编号", width: "50px" },
+        { key: "name", label: "名称", width: "140px" },
+        { key: "price", label: "价格", width: "80px" },
+        { key: "origin", label: "产地", width: "140px" },
+        { key: "stock", label: "库存", width: "140px" },
+        { key: "desc", label: "描述", width: "140px" },
+        { key: "weight", label: "重量", width: "140px" },
+        { key: "color", label: "颜色", width: "140px" },
+        { key: "seller", label: "卖家", width: "140px" },
+        { key: "material", label: "材质", width: "80px" },
+        { key: "size", label: "尺寸", width: "140px" },
+        { key: "rating", label: "评分", width: "140px" },
+        { key: "discount", label: "折扣", width: "140px" },
+        { key: "sales", label: "销量", width: "140px" },
+        { key: "warranty", label: "保修", width: "140px" },
+        { key: "delivery", label: "配送", width: "140px" },
+        { key: "hot", label: "热度", width: "140px" },
+        { key: "supplier", label: "供应商", width: "140px" },
+        { key: "remark", label: "备注", width: "140px" },
+      ];
+      const freezeCount = 3;
+
+      // 模拟数据：每个大类下分品牌，每品牌下有数据
+      const brands = ["乐高", "小米", "宜家", "三只松鼠", "美的"];
+      function makeRows(startId, count, category, brand) {
+        const origins = [
+          "中国",
+          "美国",
+          "德国",
+          "日本",
+          "法国",
+          "意大利",
+          "韩国",
+          "瑞典",
+          "荷兰",
+          "西班牙",
+        ];
+        const sellers = [
+          "京东",
+          "天猫",
+          "淘宝",
+          "苏宁",
+          "拼多多",
+          "国美",
+          "唯品会",
+          "亚马逊",
+          "当当",
+          "小红书",
+        ];
+        const colors = [
+          "红",
+          "蓝",
+          "绿",
+          "黄",
+          "黑",
+          "白",
+          "紫",
+          "橙",
+          "灰",
+          "粉",
+        ];
+        const descs = [
+          "优质",
+          "热销",
+          "新品",
+          "限量",
+          "环保",
+          "经典",
+          "畅销",
+          "高端",
+          "实用",
+          "时尚",
+        ];
+        let arr = [];
+        for (let i = 0; i < count; i++) {
+          arr.push({
+            //   indent:"",
+            id: startId + i,
+            name: category + brand + "商品" + (i + 1),
+            price: Math.floor(Math.random() * 100 + 10),
+            origin: origins[i % origins.length],
+            stock: Math.floor(Math.random() * 500 + 10),
+            desc: descs[i % descs.length],
+            weight: (Math.random() * 5 + 0.1).toFixed(2) + "kg",
+            color: colors[i % colors.length],
+            seller: sellers[i % sellers.length],
+            material: [
+              "塑料",
+              "金属",
+              "木",
+              "布",
+              "玻璃",
+              "纸",
+              "皮革",
+              "陶瓷",
+              "橡胶",
+              "复合",
+            ][i % 10],
+            size: Math.floor(Math.random() * 100) + 10 + "cm",
+            rating: (Math.random() * 5).toFixed(1),
+            discount: (Math.random() * 50).toFixed(0) + "%",
+            sales: Math.floor(Math.random() * 10000),
+            warranty: ["1年", "2年", "3年", "无"][i % 4],
+            delivery: ["包邮", "自提", "快递", "物流"][i % 4],
+            hot: Math.floor(Math.random() * 100),
+            supplier: ["A公司", "B公司", "C公司", "D公司", "E公司"][i % 5],
+            remark: ["", "促销", "新品", "热卖", "限量"][i % 5],
+          });
+        }
+        return arr;
+      }
+
+      //   const groups = [
+      //     {
+      //       name: "玩具",
+      //       brands: brands.map((b, bi) => ({
+      //         brand: b,
+      //         data: makeRows(1 + bi * 20, 20, "玩具", b),
+      //       })),
+      //     },
+      //     {
+      //       name: "家居",
+      //       brands: brands.map((b, bi) => ({
+      //         brand: b,
+      //         data: makeRows(101 + bi * 20, 20, "家居", b),
+      //       })),
+      //     },
+      //     {
+      //       name: "健康食品",
+      //       brands: brands.map((b, bi) => ({
+      //         brand: b,
+      //         data: makeRows(201 + bi * 20, 20, "健康食品", b),
+      //       })),
+      //     },
+      //   ];
+
+      const groups = [
+        {
+          groupBy: "类型",
+          name: "玩具",
+          children: [
+            {
+              groupBy: "品牌",
+              name: "乐高",
+              data: makeRows(1, 20, "玩具", "乐高"),
+            },
+            {
+              groupBy: "品牌",
+              name: "小米",
+              data: makeRows(21, 20, "玩具", "小米"),
+            },
+          ],
+        },
+        {
+          groupBy: "类型",
+          name: "家居",
+          children: [
+            {
+              groupBy: "品牌",
+              name: "宜家",
+              data: makeRows(101, 20, "家居", "宜家"),
+            },
+            {
+              groupBy: "品牌",
+              name: "三只松鼠",
+              data: makeRows(121, 20, "家居", "三只松鼠"),
+            },
+          ],
+        },
+        {
+          groupBy: "类型",
+          name: "健康食品",
+          children: [
+            {
+              groupBy: "品牌",
+              name: "美的",
+              data: makeRows(201, 20, "健康食品", "美的"),
+            },
+          ],
+        },
+      ];
+
+      // const groups = [
+      //   {
+      //     groupBy: "类型",
+      //     name: "玩具",
+      //     data: makeRows(1, 20, "玩具", "乐高"),
+      //   },
+      //   {
+      //     groupBy: "类型",
+      //     name: "家居",
+      //     data: makeRows(101, 20, "家居", "宜家"),
+      //   },
+      //   {
+      //     groupBy: "类型",
+      //     name: "健康食品",
+      //     data: makeRows(201, 20, "健康食品", "美的"),
+      //   },
+      // ];
+
+      //   const groups = [
+      //     {
+      //       data: makeRows(1, 60, "玩具", "乐高"),
+      //     },
+      //   ];
+
+      const indentPerLevel = 20; // 每级缩进20px
+      function renderGroups(
+        groups,
+        level,
+        container = document.querySelector(".main-scroll"),
+        top
+      ) {
+        groups.forEach((group) => {
+          const catDiv = document.createElement("div");
+          if (group.name !== undefined) {
+            // 分类标题
+
+            catDiv.className = "group-title";
+            catDiv.style.top = top + "px"; //设置sticky时距离父元素顶部位置
+            //以下计算每层级缩进，例如有两级分类，先按产品类型分组，在相同产品类型下再按产品品牌分组。
+            //如上例一共有三层，分别是产品类型、产品品牌、具体的数据行
+            //第一层产品类型不缩进，第二层产品品牌缩进20px，数据行再缩进20px
+            //上例中的20px是可配置的，通过indentPerLevel变量控制
+            catDiv.style.paddingLeft = indentPerLevel * level + "px";
+
+            // 设置分类标题内容
+            catDiv.textContent = group.groupBy
+              ? `${group.groupBy}:${group.name}`
+              : `${group.name}`;
+          }
+          container.appendChild(catDiv);
+          // 获取实际高度，设置下一个元素的top位置
+          const actualHeight = catDiv.offsetHeight;
+          const nextTop = top + actualHeight;
+          if (group.children && group.children.length > 0) {
+            // 递归渲染子分类
+            renderGroups(group.children, level + 1, container, nextTop);
+          } else if (group.data && group.data.length > 0) {
+            // 渲染数据表格
+            // 计算数据表格缩进宽度
+            const indentWidth =
+              parseInt(catDiv.style.paddingLeft) + indentPerLevel + "px";
+            renderTable(group.data, container, nextTop, indentWidth);
+          }
+        });
+      }
+
+
+      function renderTable(data, container, top, indentWidth) {
+        // 表头
+        const header = document.createElement("div");
+        header.className = "table-header";
+        //设置表头sticky时距离父元素顶部位置
+        header.style.top = top + "px";
+        let stickyLeft = 0;
+        const indentCell = createHeaderCell("", indentWidth, stickyLeft, true);
+        stickyLeft += parseInt(indentWidth);
+        header.appendChild(indentCell);
+        columns.forEach((col, ci) => {
+          const cell = createHeaderCell(
+            col.label,
+            col.width,
+            stickyLeft,
+            ci < freezeCount
+          );
+          header.appendChild(cell);
+          stickyLeft += parseInt(col.width);
+        });
+        container.appendChild(header);
+
+        // 内容
+        data.forEach((row) => {
+          const rowDiv = document.createElement("div");
+          rowDiv.className = "table-row";
+          let stickyLeft = 0;
+
+          const indentCell = createContentCell(
+            "",
+            indentWidth,
+            stickyLeft,
+            true
+          );
+          rowDiv.appendChild(indentCell);
+          stickyLeft += parseInt(indentWidth);
+          columns.forEach((col, ci) => {
+            const cell = createContentCell(
+              row[col.key],
+              col.width,
+              stickyLeft,
+              ci < freezeCount
+            );
+            rowDiv.appendChild(cell);
+            stickyLeft += parseInt(col.width);
+          });
+          container.appendChild(rowDiv);
+        });
+      }
+
+      function calcTableWidth(indentWidth) {
+        // 计算所有字段宽度之和
+        let total = indentWidth;
+        columns.forEach((col) => {
+          let w = col.width;
+          if (w.endsWith("px")) {
+            total += parseInt(w);
+          }
+        });
+        return total + "px";
+      }
+
+      function createHeaderCell(content, width, stickyLeft, isSticky) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = content;
+        // width支持数字和字符串(px结尾)，以下统一转换为字符串，px为单位
+        const w =
+          typeof width == "string" && width.endsWith("px")
+            ? width
+            : width + "px";
+
+        if (isSticky) {
+          cell.classList.add("cell-indent");
+          cell.style.width = `${w}`;
+          cell.style["min-width"] = `${w}`;
+          cell.style["max-width"] = `${w}`;
+          //cell.style.left表示距离父元素左侧位置
+          cell.style.left = `${stickyLeft}px`;
+          cell.style.flex = `0 0 ${w}`;
+          cell.classList.add("sticky-cell");
+        } else {
+          cell.style.width = `${w}`;
+          cell.style["min-width"] = `${w}`;
+          cell.style["max-width"] = `${w}`;
+          cell.style.left = `${stickyLeft}px`;
+          cell.style.flex = `0 0 ${w}`;
+        }
+        return cell;
+      }
+
+      function createContentCell(content, width, stickyLeft, isSticky) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = content;
+        const w =
+          typeof width == "string" && width.endsWith("px")
+            ? width
+            : width + "px";
+        if (isSticky) {
+          cell.classList.add("cell-indent");
+          cell.style.width = `${w}`;
+          cell.style["min-width"] = `${w}`;
+          cell.style["max-width"] = `${w}`;
+          cell.style.left = `${stickyLeft}px`;
+          cell.style.flex = `0 0 ${w}`;
+          cell.classList.add("sticky-cell");
+        } else {
+          cell.style.width = `${w}`;
+          cell.style["min-width"] = `${w}`;
+          cell.style["max-width"] = `${w}`;
+          cell.style.left = `${stickyLeft}px`;
+          cell.style.flex = `0 0 ${w}`;
+        }
+        return cell;
+      }
+
+      const container = document.querySelector(".main-scroll");
+      renderGroups(groups, 1, container, 0);
+    </script>
+  </body>
+</html>

@@ -9,6 +9,8 @@ import ActionButtonClient from './components/testcase/ActionButtonClient';
 import './App.css';
 import { InputNumber} from 'antd';
 import CustomSelectTest from './components/testcase/CustomSelectTest'
+import GroupedStickyTableDemo from './components/Table2';
+import Demo from './Demo'
 function App() {
   const [currentLanguage, setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
   return (
@@ -25,8 +27,10 @@ function App() {
             <div className="nav-links">
               <Link to="/" className="nav-link">首页</Link>
               <Link to="/table" className="nav-link">表格示例</Link>
+              <Link to="/demo" className="nav-link">Demo</Link>
               <Link to="/actionButtonClient" className="nav-link">按钮区组件示例</Link>  
               <Link to="/customSelectTest" className="nav-link">customSelectTest</Link>  
+              <Link to="/table2" className="nav-link">table2</Link>  
               <InputNumber defaultValue={100}></InputNumber>                       
             </div>
           </div>
@@ -39,6 +43,8 @@ function App() {
             <Route path="/table" element={<Table />} />
             <Route path="/actionButtonClient" element={<ActionButtonClient />} />
             <Route path="/customSelectTest" element={<CustomSelectTest />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/table2" element={<GroupedStickyTableDemo />} />
           </Routes>
         </main>
 

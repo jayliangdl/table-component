@@ -28,3 +28,11 @@ export interface ProductInUI extends Product {
   isSaving?:boolean;//本属性由前端填入，非后端属性，表示界面上本记录是否正在保存中状态
   rowDataBeforeEdit?:Product;//本属性由前端填入，非后端属性，表示界面上本记录编辑前的原始数据
 }
+
+
+export interface GroupNode {
+    groupBy?: string,
+    name?: string,
+    children?: GroupNode[]
+    data?: Product[]
+}
