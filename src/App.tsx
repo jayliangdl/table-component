@@ -7,10 +7,12 @@ import TableSample from './components/TableSample';
 import Table from './components/Table';
 import ActionButtonClient from './components/testcase/ActionButtonClient';
 import './App.css';
-import { InputNumber} from 'antd';
 import CustomSelectTest from './components/testcase/CustomSelectTest'
 import GroupedStickyTableDemo from './components/Table2';
-import Demo from './Demo'
+import GroupByCondition from './components/GroupByCondition';
+import Demo from './Demo' ;
+import {groupColumnsOptions} from './utils/mockData';
+
 function App() {
   const [currentLanguage, setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
   return (
@@ -19,7 +21,7 @@ function App() {
     >
     <Router>
       <div className="app">
-        <nav className="nav-bar">
+        {/* <nav className="nav-bar">
           <div className="nav-container">
             <Link to="/" className="nav-logo">
               📊 Table Component App
@@ -31,10 +33,11 @@ function App() {
               <Link to="/actionButtonClient" className="nav-link">按钮区组件示例</Link>  
               <Link to="/customSelectTest" className="nav-link">customSelectTest</Link>  
               <Link to="/table2" className="nav-link">table2</Link>  
+              <Link to="/groupByCondition" className="nav-link">groupByCondition</Link>  
               <InputNumber defaultValue={100}></InputNumber>                       
             </div>
           </div>
-        </nav>
+        </nav> */}
 
         <main className="main-content">
           <Routes>
@@ -45,6 +48,7 @@ function App() {
             <Route path="/customSelectTest" element={<CustomSelectTest />} />
             <Route path="/demo" element={<Demo />} />
             <Route path="/table2" element={<GroupedStickyTableDemo />} />
+            <Route path="/groupByCondition" element={<GroupByCondition columnsOptions={()=>{return Promise.resolve(groupColumnsOptions)}}/>} />
           </Routes>
         </main>
 

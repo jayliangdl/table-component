@@ -27,6 +27,7 @@ export const EventName = {
   onBlur: 'ON_BLUR',
   onChange:'ON_CHANEG',  
   onDataFetched: 'ON_DATA_FETCHED',
+  onGroupSubmit: 'ON_GROUP_SUBMIT'
 } as const;
 
 export type EventName = typeof EventName[keyof typeof EventName];

@@ -5,8 +5,6 @@ import { sampleColumnsConfig,type UnderGroupsProps,type ColumnConfig } from "../
 import {toPx} from "../utils/convert"
 import {type Width} from "../types/editableCell"
 import Row2 from "./Row2"
-import DraggableRow2 from "./DraggableRow2"
-import type { ProductInUI } from "../types/Product";
 
 import {
     COLUMN_DEFAULT_WIDTH,
@@ -45,8 +43,6 @@ interface BaseCellProps {
     sticky?: boolean;
     children?: React.ReactNode;
 }
-
-
 
 interface TableSectionProps {
     data: Product[];
@@ -127,10 +123,6 @@ function HeaderCell(props: BaseCellProps) {
     return <BaseCell {...props}>{<div style={style}>{props.children}</div>}</BaseCell>;
 }
 
-function ContentCell(props: BaseCellProps) {
-    return <BaseCell {...props} />;
-}
-
 // —— 表格片段（表头 + 数据行）
 function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowOrderChange }: TableSectionProps) {
     const indentW = indentWidth; // px
@@ -187,8 +179,7 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
             </div>
 
             {/* 数据行 */}
-            {data.map((row,index) => {
-                let accLeft =0;                
+            {data.map((row,index) => {             
                 return (
                     <div key={row.id} style={dataRowStyle}>
                         <Row2 index={index} 
@@ -202,35 +193,6 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
                                 groupKey={groupKey}
                                 onRowDrop={handleRowDrop}
                         />  
-                        {/* <DraggableRow2 product={row} columnsConfig={columnsConfig} indentW={indentW} 
-                            freezeCount={freezeCount}
-                            draggable={true} 
-                            /> */}
-                    {/* <RowCore2 product={row} columnsConfig={columnsConfig} indentW={indentW} 
-                            freezeCount={freezeCount}/> */}
-                        
-                        {/* 缩进占位列（冻结） */}
-                        {/* <BaseCell width={indentW} left={accLeft} sticky />
-                        {(() => {
-                            accLeft += indentW;
-                            // return RowCore2(row,columnsConfig,freezeCount,accLeft);
-                            return columnsConfig.map((col, ci) => {
-                                const w = toPx(col.style?.width,COLUMN_DEFAULT_WIDTH);
-                                const value = (row as any)[col.columnName];
-                                const cell = (
-                                    <ContentCell
-                                        key={`${row.id}-${col.columnName}`}
-                                        width={w}
-                                        left={ci < freezeCount ? accLeft : undefined}
-                                        sticky={ci < freezeCount}
-                                    >
-                                        {value as React.ReactNode}
-                                    </ContentCell>
-                                );
-                                accLeft += w;
-                                return cell;
-                            });
-                        })()} */}
                     </div>
                 );
             })}

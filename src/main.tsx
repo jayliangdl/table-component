@@ -6,7 +6,7 @@ import Table2 from './components/Table2';
 
 createRoot(document.getElementById('root')!).render(
   // <StrictMode>
-    // <App />
-    <Table2 />
+    <App />
+    // <Table2 />
   // </StrictMode>,
 )

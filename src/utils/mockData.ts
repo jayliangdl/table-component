@@ -326,3 +326,10 @@ export function productsGroupByColumns(
   }
   return groupRecursive(groupByColumnNames, products);
 }
+
+export const groupColumnsOptions = [
+  {label:"column1",value:"value1"},
+  {label:"column2",value:"value2"},
+  {label:"column3",value:"value3"},
+  {label:"column4",value:"value4"},
+]

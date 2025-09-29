@@ -81,3 +81,125 @@ export const toPx = (wOrH: number | string | undefined,defaultValue:number): num
             : typeof wOrH === "string" && wOrH.endsWith("px") ? parseInt(wOrH, 10) : defaultValue;
     return v;
 }
+
+/**
+ * 调整颜色明暗度
+ * @param color 十六进制颜色值，可以带#或不带，如"e8d2ffff"、"#e8d2ff"
+ * @param amount 调整程度，正数表示加深，负数表示变浅，建议范围在-1到1之间
+ * @returns 调整后的十六进制颜色
+ * // 示例用法
+ * console.log(adjustColorLightness("e8d2ffff", 0.4)); // 浅紫色加深
+ * console.log(adjustColorLightness("#ffcccc", -0.3)); // 浅红色变浅
+ * console.log(adjustColorLightness("aaffaa", 0.6)); // 浅绿色加深更多
+ */
+export const adjustColorLightness = (color: string, amount: number = 0): string => {
+    // 处理输入格式，移除#并确保是6或8位
+    let hex = color.replace(/^#/, '');
+    
+    // 处理8位带alpha通道的颜色，提取RGB部分
+    if (hex.length === 8) {
+        hex = hex.substring(0, 6);
+    }
+    
+    // 验证输入
+    if (!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+        throw new Error('无效的颜色格式，请使用6位或8位十六进制颜色');
+    }
+    
+    // 限制调整范围在-1到1之间
+    amount = Math.max(-1, Math.min(1, amount));
+    
+    // 解析RGB值
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    
+    // RGB转HSV
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h: number = 0;
+    let s: number;
+    let v: number = max;
+    
+    const d = max - min;
+    s = max === 0 ? 0 : d / max;
+    
+    if (max !== min) {
+        switch (max) {
+            case r: 
+                h = (g - b) / d + (g < b ? 6 : 0); 
+                break;
+            case g: 
+                h = (b - r) / d + 2; 
+                break;
+            case b: 
+                h = (r - g) / d + 4; 
+                break;
+        }
+        h /= 6;
+    }
+    
+    // 调整明度（V值）
+    // 正数amount降低明度（加深），负数amount增加明度（变浅）
+    if (amount > 0) {
+        // 加深颜色
+        v = Math.max(0, v * (1 - amount));
+    } else {
+        // 变浅颜色
+        v = Math.min(1, v * (1 + Math.abs(amount)));
+    }
+    
+    // HSV转RGB
+    let r2: number, g2: number, b2: number;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    
+    switch (i % 6) {
+        case 0: 
+            r2 = v; 
+            g2 = t; 
+            b2 = p; 
+            break;
+        case 1: 
+            r2 = q; 
+            g2 = v; 
+            b2 = p; 
+            break;
+        case 2: 
+            r2 = p; 
+            g2 = v; 
+            b2 = t; 
+            break;
+        case 3: 
+            r2 = p; 
+            g2 = q; 
+            b2 = v; 
+            break;
+        case 4: 
+            r2 = t; 
+            g2 = p; 
+            b2 = v; 
+            break;
+        case 5: 
+            r2 = v; 
+            g2 = p; 
+            b2 = q; 
+            break;
+        default:
+            r2 = 0;
+            g2 = 0;
+            b2 = 0;
+    }
+    
+    // 转换为十六进制并返回
+    const toHex = (x: number): string => {
+        const hex = Math.round(x * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
+}
+
