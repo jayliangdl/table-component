@@ -1,0 +1,47 @@
+/* 建议：被标记的目标元素要能相对定位 */
+.drag-target {
+  position: relative;
+}
+
+/* 可放置悬停的淡背景（可选） */
+.drag-over-ok {
+  outline: 0;
+  box-shadow: inset 0 0 0 2px rgba(254, 98, 178, .18);
+}
+
+/* 插入线（前/后） */
+.drag-insert-before::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: -1px;
+  border-top: 4px solid rgb(254, 98, 178);
+  box-shadow: 0 0 6px rgba(254, 98, 178, .6);
+  pointer-events: none;
+}
+
+.drag-insert-after::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  border-bottom: 4px solid rgb(254, 98, 178);
+  box-shadow: 0 0 6px rgba(254, 98, 178, .6);
+  pointer-events: none;
+}
+
+/* 如果用于“列”，把 before/after 改成左右线（可单独做一套类名） */
+.col-insert-before::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: -1px;
+  border-left: 4px solid rgb(254, 98, 178);
+  box-shadow: 0 0 6px rgba(254, 98, 178, .6);
+  pointer-events: none;
+}
+.col-insert-after::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; right: -1px;
+  border-right: 4px solid rgb(254, 98, 178);
+  box-shadow: 0 0 6px rgba(254, 98, 178, .6);
+  pointer-events: none;
+}

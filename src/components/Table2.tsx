@@ -5,6 +5,8 @@ import { sampleColumnsConfig,type UnderGroupsProps,type ColumnConfig } from "../
 import {toPx} from "../utils/convert"
 import {type Width} from "../types/editableCell"
 import Row2 from "./Row2"
+import {useDraggable} from "../service/useDraggable"
+import styles from "./Table2.module.css";
 
 import {
     COLUMN_DEFAULT_WIDTH,
@@ -44,11 +46,15 @@ interface BaseCellProps {
     children?: React.ReactNode;
 }
 
+type BaseCellDomProps = React.HTMLAttributes<HTMLDivElement>;
+type HeaderCellProps = BaseCellProps & BaseCellDomProps;
+
 interface TableSectionProps {
     data: Product[];
     top: number; // sticky top for header
     indentWidth: number; // px
     columnsConfig: ColumnConfig[];
+    
     /**
      * 当前数据行所在的分组路径
      * 例如：[
@@ -59,7 +65,10 @@ interface TableSectionProps {
      * 如果为空，则表示当前记录在顶层分组下
      * **/
     underGroups:UnderGroupsProps[];
-    onRowOrderChange:(fromIndex: number, toIndex: number, underGroups:UnderGroupsProps[])=>void;
+    getDragRowProps:(index: number, currentRecord: Product, groupKey:Record<string,any>)=>React.HTMLAttributes<HTMLDivElement>;
+    getDragColumnProps:(index: number, currentRecord: ColumnConfig, groupKey:undefined)=>React.HTMLAttributes<HTMLDivElement>;
+
+    // onRowOrderChange:(fromIndex: number, toIndex: number, underGroups:UnderGroupsProps[])=>void;
 }
 
 interface GroupSectionProps {
@@ -68,10 +77,37 @@ interface GroupSectionProps {
     thisTop?: number; // 该分组标题的 sticky top
     columnsConfig: ColumnConfig[];
     underGroups:UnderGroupsProps[];
-    onRowOrderChange:(fromIndex: number, toIndex: number, underGroups:UnderGroupsProps[])=>void;
+
+    /**
+     * 
+     * @param index - 当前行在所属分组下的索引
+     * @param currentRecord - 当前行的数据 Product类型
+     * @param groupKey - 当前行所在的分组标识对象，如 {category:"category_xxx",brand:"brand_xxx"}
+     * @returns - 用于绑定到行元素上的拖拽属性
+     */
+    getDragRowProps:(index: number, currentRecord: Product, groupKey:Record<string,any>)=>React.HTMLAttributes<HTMLDivElement>;
+
+    getDragColumnProps:(index: number, currentRecord: ColumnConfig, groupKey:undefined)=>React.HTMLAttributes<HTMLDivElement>;
+
+    // onRowOrderChange:(fromIndex: number, toIndex: number, underGroups:UnderGroupsProps[])=>void;
 }
 export const freezeCount = 3; // 冻结前 n 列
 export const indentPerLevel = 20; // 每级缩进 px
+
+/**
+ * 定义可拖拽表头Column接口
+ */
+interface DraggableEndPointColumn{
+    index: number;
+    groupKey: undefined;
+    record: ColumnConfig;
+}
+
+interface DraggableEndPointRow{
+    index: number;
+    groupKey:Record<string,any>;
+    record: Product;
+}
 
 
 // —— 计算整表宽度（包含缩进列）
@@ -93,7 +129,7 @@ function calcTableWidth(indentWidth: number, columnsConfig: ColumnConfig[]): num
 }
 
 // —— 基础单元格（纯内联样式）
-function BaseCell({ children, width, left, sticky }: BaseCellProps) {
+function BaseCell({ children, width, left, sticky, style:styleFromProps,...rest}: BaseCellProps & BaseCellDomProps) {
     const w = typeof width === "number" ? `${width}px` : width;
     const px = typeof width === "number" ? width : toPx(width,COLUMN_DEFAULT_WIDTH);
     const style: React.CSSProperties = {
@@ -112,19 +148,25 @@ function BaseCell({ children, width, left, sticky }: BaseCellProps) {
         borderRight: sticky ?"0px solid #eee":"1px solid #eee",
         flex: `0 0 ${px}px`,
         flexShrink: 0,
+        ...(styleFromProps || {}),
     };
-    return <div style={style}>{children}</div>;
+    return <div style={style} {...rest}>{children}</div>;
 }
 
-function HeaderCell(props: BaseCellProps) {
-    const style: React.CSSProperties = {
-        fontWeight: 500,
-    };
-    return <BaseCell {...props}>{<div style={style}>{props.children}</div>}</BaseCell>;
+function HeaderCell(
+        props: HeaderCellProps) 
+{
+        const style: React.CSSProperties = {
+            fontWeight: 500,
+        };
+        return <BaseCell {...props}>{<div style={style}>{props.children}</div>}</BaseCell>;
 }
 
 // —— 表格片段（表头 + 数据行）
-function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowOrderChange }: TableSectionProps) {
+function TableSection({ 
+        data, top, indentWidth, columnsConfig,
+        underGroups,getDragRowProps,getDragColumnProps 
+    }: TableSectionProps) {
     const indentW = indentWidth; // px
     const headerRowStyle: React.CSSProperties = {
         display: "flex",
@@ -141,14 +183,14 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
         background: "#fff",
     };
 
-    const groupKey = React.useMemo(()=>
-        underGroups.map(g=>`${g.columnName}=${g.value}`).join("|"),
+    const groupKey:Record<string,any> = React.useMemo(()=>
+        underGroups.reduce((acc,group)=>{
+            acc[group.columnName] = group.value;
+            return acc;
+        },{} as Record<string,any>),
         [underGroups]
     );
-
-    const handleRowDrop = React.useCallback((from: number, to: number) => {
-       onRowOrderChange(from,to,underGroups);
-    },[onRowOrderChange, underGroups]);
+    
     return (
         <>
             {/* 表头 */}
@@ -161,6 +203,7 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
                 {(() => {
                     let accLeft = indentW;
                     return columnsConfig.map((col, ci) => {
+                        const dragColumnProps = getDragColumnProps(ci,col,undefined);  
                         const w = toPx(col.style?.width,COLUMN_DEFAULT_WIDTH);
                         const cell = (
                             <HeaderCell
@@ -168,6 +211,7 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
                                 width={w}
                                 left={ci < freezeCount ? accLeft : undefined}
                                 sticky={ci < freezeCount}
+                                {...dragColumnProps}
                             >
                                 {col.title}
                             </HeaderCell>
@@ -179,19 +223,24 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
             </div>
 
             {/* 数据行 */}
-            {data.map((row,index) => {             
+            {data.map((row,index) => {  
+                /**
+                 * 获取当前行的拖拽属性，用于绑定到行元素上（如: <div ... {...dragRowProps}>）    
+                 * @param index - 当前行在所属分组下的索引
+                 * @param currentRecord - 当前行的数据 Product类型
+                 * @param groupKey - 当前行所在的分组标识对象，如 {category:"category_xxx",brand:"brand_xxx"}            
+                 * @return - 用于绑定到行元素上的拖拽属性 
+                 */
+                const dragRowProps = getDragRowProps(index,row,groupKey);        
                 return (
-                    <div key={row.id} style={dataRowStyle}>
-                        <Row2 index={index} 
-                                columnsConfig={columnsConfig} 
+                    <div key={row.id} style={dataRowStyle} {...dragRowProps}>
+                        <Row2 columnsConfig={columnsConfig} 
                                 key={`${row.id}-${index}`} 
                                 product={row} 
                                 indentW={indentW} 
                             freezeCount={freezeCount}
                                 isEditing={false} 
                                 isSaving={false} 
-                                groupKey={groupKey}
-                                onRowDrop={handleRowDrop}
                         />  
                     </div>
                 );
@@ -201,7 +250,11 @@ function TableSection({ data, top, indentWidth, columnsConfig,underGroups,onRowO
 }
 
 // —— 分组递归渲染
-function GroupSection({ group, level, thisTop, columnsConfig,underGroups,onRowOrderChange }: GroupSectionProps) {
+function GroupSection({ 
+        group, level, thisTop, columnsConfig,underGroups,
+        getDragRowProps,getDragColumnProps,
+        // onRowOrderChange 
+    }: GroupSectionProps) {
 
     const indentToTheLeft = indentPerLevel * level + "px";
     const fontWeight = LEVEL_1_FONT_WEIGHT - (level - 1) * FONT_WEIGHT_DECRISE_PER_LEVEL;
@@ -261,7 +314,11 @@ function GroupSection({ group, level, thisTop, columnsConfig,underGroups,onRowOr
             {group.children && group.children.length > 0 ? (
                 group.children.map((child, idx) => (
                     <GroupSection key={`${group.name}-${idx}`} group={child} level={level + 1} thisTop={nextTop} 
-                    columnsConfig={columnsConfig} underGroups={currentPath} onRowOrderChange={onRowOrderChange}/>
+                    columnsConfig={columnsConfig} underGroups={currentPath} 
+                    // onRowOrderChange={onRowOrderChange}
+                    getDragRowProps={getDragRowProps}
+                    getDragColumnProps={getDragColumnProps}
+                    />
                 ))
             ) : group.data && group.data.length > 0 ? (
                 <div 
@@ -270,7 +327,10 @@ function GroupSection({ group, level, thisTop, columnsConfig,underGroups,onRowOr
                 <TableSection data={group.data} top={nextTop} indentWidth={indentWidth} 
                 underGroups={currentPath}
                 columnsConfig={columnsConfig} 
-                onRowOrderChange={onRowOrderChange}/>
+                getDragRowProps={getDragRowProps}
+                getDragColumnProps={getDragColumnProps}
+                // onRowOrderChange={onRowOrderChange}
+                />
                 </div>
             ) : null}
         </>
@@ -350,13 +410,150 @@ export default function GroupedStickyTableDemo(): JSX.Element {
                 return prevGroups;
             }
         });
+    }   
+
+    const onReorder=(
+        fromIndex: DraggableEndPointRow, 
+        toIndex: DraggableEndPointRow
+    )=>{
+            const underGroups = fromIndex.groupKey
+                    ?Object.keys(fromIndex.groupKey).map(k=>({columnName:k,value:fromIndex.groupKey[k]}))
+                    :[];            
+            reOrderRowHandler(
+                fromIndex.index,
+                toIndex.index,
+                underGroups
+            );
     }
+    
+
+    /**
+     * 获取某个分组下的元素总数
+     * 用于 useDraggable Hook 中参数lengthOf
+     * @param groupKey:Record<string,any> - 分组标识 (如 {category:"category_xxx",brand:"brand_xxx"})     
+     * @returns 
+     */
+    const lengthOf = (groupKey:Record<string,any>):number=>{
+        const findGroupChildren = (groups:GroupNode[], columnName:string, value:any):GroupNode[]=>{
+            for(const group of groups){                
+                if(group.groupBy===columnName && group.name===value){
+                    const children = group.children || [];
+                    return children;
+                }
+            }    
+            return [];        
+        }
+        if(!groupByColumnNames.every(c=>c in groupKey)){
+            return 0;
+        }
+        let children:GroupNode[] = groups;
+
+        for(const groupByColumnName of groupByColumnNames){            
+            const columnName = groupByColumnName;
+            const value = groupKey[groupByColumnName];
+            children = findGroupChildren(children, columnName, value);
+            if(children.length===0){
+                return 0;
+            }
+        }
+        
+        return children[0].data ? children[0].data.length : 0;
+    }
+
+    /**
+     * 定义在行被拖拽后，是否允许放下的判断逻辑
+     * @param from - 被拖拽的行。包括行索引、所属分组标识、行数据。
+     * @param to - 被放下的目标行。包括行索引、所属分组标识、行数据。
+     * @returns boolean - 是否允许放下
+     */
+    const ableToDrop=(
+        from:DraggableEndPointRow,
+        to:DraggableEndPointRow
+    ):boolean=>
+    {
+        if (!from) return false;
+        return from.groupKey === to.groupKey; // 不允许跨组放
+    }
+
+    // 行：用垂直方向判定
+    const resolveInsertSideRows = (e: React.DragEvent<HTMLElement>, el: HTMLElement) => {
+        const r = el.getBoundingClientRect();
+        return e.clientY > r.top + r.height / 2 ? "after" : "before";
+    }
+
+    const classNamesRows = {
+        targetBase: styles["drag-target"],
+        overOk: styles["drag-over-ok"],
+        insertBefore: styles["drag-insert-before"],
+        insertAfter: styles["drag-insert-after"],
+    }
+
+    const {getItemProps:getDraggableRowProps} = useDraggable({
+        lengthOf,
+        onReorder,
+        ableToDrop,
+        resolveInsertSide:resolveInsertSideRows,
+        classNames:classNamesRows        
+    });
+
+    const lengthOfColumns = (_groupKey:undefined):number=>{
+        return columnsConfig.length;
+    }
+
+    const onReorderColumns = (
+        fromIndex: DraggableEndPointColumn,
+        toIndex: DraggableEndPointColumn
+    ) => {
+        if (!fromIndex || !toIndex) return;
+        setColumnsConfig((prevCols) => {
+            const newCols = [...prevCols];
+            const [moved] = newCols.splice(fromIndex.index, 1);
+            newCols.splice(toIndex.index, 0, moved);
+            return newCols;
+        });
+    }
+
+    const ableToDropColumns = (
+        from: DraggableEndPointColumn,
+        to: DraggableEndPointColumn,
+    ): boolean => {
+        if (!from) return false;
+        if(from.index< freezeCount || to.index < freezeCount){
+            return false; // 不允许拖动冻结列
+        }
+        return true; // 列拖拽不限制
+    }
+
+    const resolveInsertSideColumns= (e: React.DragEvent<HTMLElement>, el: HTMLElement) => {
+        const r = el.getBoundingClientRect();
+        return e.clientX > r.left + r.width / 2 ? "after" : "before";
+    }
+    const classNamesColumns = {
+        targetBase: styles["drag-target"],
+        overOk: styles["drag-over-ok"],
+        insertBefore: styles["col-insert-before"], // 注意：列用左右线类
+        insertAfter: styles["col-insert-after"],
+    }
+
+    
+
+    const {getItemProps:getDraggableColumnProps} = useDraggable({
+        lengthOf:lengthOfColumns,
+        onReorder:onReorderColumns,
+        ableToDrop:ableToDropColumns,
+        resolveInsertSide:resolveInsertSideColumns,
+        classNames:classNamesColumns,
+    });
 
     return (
         <div style={containerStyle}>
             {groups.map((g, i) => (
                 <GroupSection key={`g-${i}`} group={g} level={1} underGroups={[]}
-                columnsConfig={columnsConfig} onRowOrderChange={reOrderRowHandler}/>
+                columnsConfig={columnsConfig} 
+                // onRowOrderChange={reOrderRowHandler}
+                getDragRowProps={(index,record,groupKey)=>getDraggableRowProps(index,record,groupKey)}
+                getDragColumnProps={(index,record,groupKey)=>getDraggableColumnProps(index,record,groupKey)}
+                />
             ))}
         </div>
     );

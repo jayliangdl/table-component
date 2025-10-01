@@ -25,7 +25,7 @@ export interface RowCore2Props {
   freezeCount: number;
   draggable?: boolean; // 是否可拖拽
   style?: React.CSSProperties;
-  className?:string; //用于拖拽时的样式
+  className?:string; //用于拖拽时的样式  
 }
 
 // —— 基础单元格（纯内联样式）
