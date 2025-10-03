@@ -13,3 +13,5 @@ export const HEIGHT_DECRISE_PER_LEVEL = 8; //分类标题所在DIV逐级减少�
 export const ICON_COLOR = ""; //icon颜色
 
 export const MAX_GROUP_BY_LEVEL = 3; //最多支持几级分组
+
+export const INDENT_PER_LEVEL= 20; // 每级缩进 px

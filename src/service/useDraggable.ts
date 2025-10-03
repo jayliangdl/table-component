@@ -76,7 +76,6 @@ export function useDraggable<K,T>(props: DraggableProps<K,T>) {
                 if (classNames?.overOk) el.classList.add(classNames.overOk);
                 if (side === "before") el.classList.add(before);
                 else if (side === "after") el.classList.add(after);       
-
             },
             onDragLeave: (e: React.DragEvent<HTMLElement>) => {
                 const el = e.currentTarget as HTMLElement;

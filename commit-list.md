@@ -47,3 +47,11 @@
 
 ## 20251001
 - 新增行和列的拖拽功能，新增useDraggable自定义Hook，实现可拖拽的行和列属性获取逻辑，支持动态拖拽效果。并在Table2组件中引用此自定义Hook，实现Table2组件的Row和Column级别拖拽，以更改它们位置。
+
+## 20251003
+- 新增 EditableCell2 组件，支持多种输入类型（文本、数字、日期、时间等）及自定义渲染，增强单元格编辑功能。
+- 新增 Table2GroupSection 组件，讲过原来Table2.tsx组件中的部分内容拆分到Table2GroupSection，让到一个编码文件更小更集中。Table2GroupSection实现分组数据展示，并支持行和列的拖拽操作。
+- 增强数据处理能力，新增用于管理可编辑状态和草稿的工具函数。
+- 通过使用 memoization 和优化渲染逻辑提升性能。
+- 更新类型和接口定义，使 props 管理更加类型安全和清晰。
+- 新增Table2Util.ts，实现了可拖拽的自定义Hook(useDraggableProps) 和 字段可编辑的自定义Hook(useEditableColumns)，以简化原来Table2.tsx中的代码量。

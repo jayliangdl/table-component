@@ -163,6 +163,15 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 				}
 			}
 		]
+	},	
+	{
+		title: '操作',
+		dataIndex: 'actions',
+		columnName: 'actions',
+		editable: false,
+		type: 'actionButton',
+		style: { textAlign: "left", whiteSpace: "nowrap", width: "200px" },
+		displayConfig: { type: "actionButton" },
 	},
 	{
 		title: "分类",
@@ -189,8 +198,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
             allowClear: true
         },
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "180px",
+			width: "180px",
 		}
 	},
 	// { 
@@ -228,8 +237,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
             allowClear: true
         },
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "180px",
+			width: "180px",
 		}
 	},
 	{
@@ -257,8 +266,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
             allowClear: true
         },
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "180px",
+			width: "180px",
 		}
 	},
 	{
@@ -314,8 +323,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			"prefix":"¥"
         },
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "120px",
+			width: "120px",
 		}
 	},
 	{
@@ -329,8 +338,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			align: "right",
 		},
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "120px",
+			width: "120px",
 		}
 	},
 	{
@@ -350,8 +359,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
             "label":"label here"
         },
 		style:{
-			minWidth: "80px",
-			width: "80px",
+			minWidth: "120px",
+			width: "120px",
 		}
 	},
 	{
@@ -365,8 +374,8 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			align: "right",
 		},
 		style:{
-			minWidth: "50px",
-			width: "50px",
+			minWidth: "120px",
+			width: "120px",
 		}
 	},
 	{
@@ -380,7 +389,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			align: "right",
 		},
 		style:{
-			width: "100px",
+			width: "120px",
 		}
 	},
 	{
@@ -435,7 +444,7 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
         },
         editConfig: {},
 		style:{
-			width: "80px",
+			width: "120px",
 		}
 	},
 	{
@@ -509,14 +518,5 @@ export const sampleColumnsConfig: ColumnConfig[]= [{
 			minWidth: "800px",
 			width: "800px",
 		}
-	},
-	{
-		title: '操作',
-		dataIndex: 'actions',
-		columnName: 'actions',
-		editable: false,
-		type: 'actionButton',
-		style: { textAlign: "left", whiteSpace: "nowrap", width: "200px" },
-		displayConfig: { type: "actionButton" },
 	}
 ];

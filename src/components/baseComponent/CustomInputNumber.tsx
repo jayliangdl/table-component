@@ -96,7 +96,7 @@ const CustomInput: React.FC<CustomInputNumberProps> = ({
                     onBlur={handleColumnBlur}
                 />
     // const ret = <input value={currentValue}/>
-    console.log(ret);
+    // console.log(ret);
     return ret;
     }
 export default CustomInput;

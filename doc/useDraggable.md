@@ -155,10 +155,8 @@ const { getItemProps: getDraggableColumnProps } = useDraggable({
   position: relative;
 }
 
-/* 有效放置目标的高亮 */
 .drag-over-ok {
   outline: 0;
-  box-shadow: inset 0 0 0 2px rgba(254, 98, 178, .18);
 }
 
 /* 行插入指示器 */
@@ -236,13 +234,13 @@ const ableToDrop = (from, to) => {
 // 对于行
 const resolveInsertSideRows = (e, el) => {
   const r = el.getBoundingClientRect();
-  return e.clientY > r.top + r.height / 2 ? "after" : "before";
+  return e.clientY > r.top + r.height ? "after" : "before";
 };
 
 // 对于列
 const resolveInsertSideColumns = (e, el) => {
   const r = el.getBoundingClientRect();
-  return e.clientX > r.left + r.width / 2 ? "after" : "before";
+  return e.clientX > r.left + r.width ? "after" : "before";
 };
 ```
 
@@ -287,6 +285,35 @@ onDragStart: (e: React.DragEvent<HTMLElement>) => void;
 
 ### 重新排序期间的数据转换
 在 `onReorder` 回调中，可以实现复杂的数据转换。
+
+## 拖拽排序插入位置的注意事项
+
+在实际拖拽排序时，插入位置的处理非常关键。常见场景如下：
+
+- 如果将某一项（如 index=1）拖到目标 index=3，通常希望插入到目标的前面。
+- 如果将某一项（如 index=3）拖到目标 index=1，也希望插入到目标的前面。
+
+**注意：**
+- 当 `fromIndex < toIndex` 时，先删除元素后，目标索引会减1，因此插入时应使用 `toIndex - 1`。
+- 当 `fromIndex > toIndex` 时，直接插入到 `toIndex` 即可。
+
+示例代码：
+```tsx
+const [moved] = data.splice(fromIndex, 1);
+let insertIndex = toIndex;
+if (fromIndex < toIndex) {
+    insertIndex = toIndex - 1;
+}
+data.splice(insertIndex, 0, moved);
+```
+
+这样可以保证拖拽后始终插在目标位置的前面，避免插入偏移问题。
+
+## onReorder 回调的实现建议
+
+在实现 `onReorder` 回调时，建议根据上述插入逻辑处理数据顺序，确保拖拽行为符合用户预期。对于复杂分组场景，也应注意分组数据的正确更新。
+
+---
 
 ## 结论
 `useDraggable` 钩子函数为表格提供了灵活、可重用的拖放功能解决方案。通过将拖放逻辑与 UI 组件分离，它允许干净、可维护的代码，适用于各种用例。

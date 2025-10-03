@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { type Language } from './types/i18n';
 import Home from './components/Home';
@@ -14,7 +14,7 @@ import Demo from './Demo' ;
 import {groupColumnsOptions} from './utils/mockData';
 
 function App() {
-  const [currentLanguage, setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
+  const [currentLanguage, _setCurrentLanguage] = React.useState<Language>('zh'); //默认语言设为中文(影响按钮上文字等)
   return (
     <LanguageProvider 
       defaultLanguage={currentLanguage}

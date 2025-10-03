@@ -1,4 +1,5 @@
 import type { Product, GroupNode } from "../types/Product";
+import type { ProductInUI } from "../types/Product";
 
 export const categories = [
   "电子产品",
@@ -306,7 +307,7 @@ export function productsGroupByColumns(
     for (const [name, groupItems] of groupMap.entries()) {
       const groupObj: GroupNode = {
         groupBy: col,
-        name,
+        value: name,
       } as any;
       const children = groupRecursive(cols.slice(1), groupItems);
       if (
@@ -318,7 +319,13 @@ export function productsGroupByColumns(
         groupObj.children = children as GroupNode[];
       } else {
         groupObj.children = undefined;
-        groupObj.data = (children && children.length > 0 && children[0].data)? children[0].data : [];
+        const data = (children && children.length > 0 && children[0].data)? children[0].data : [];
+        const productsInUIData: ProductInUI[] = data.map(d=>({
+          ...d,
+          isEditing: false, // 初始时所有行均不可编辑
+          isSaving: false, // 初始时所有行均不在保存中状态
+        }));
+        groupObj.data = productsInUIData;
       }
       result.push(groupObj);
     }
@@ -326,6 +333,70 @@ export function productsGroupByColumns(
   }
   return groupRecursive(groupByColumnNames, products);
 }
+
+
+// export interface FlatGroupData {
+//     data: Product[];
+//     keys: Record<string, any>;
+// }
+/**
+ * 例子：
+ * [
+ *   {
+ *      groupBy: 'category',
+ *     name:'category_xxx1',
+ *     children:[{
+ *         groupBy:'brand',
+ *        name:'brand_xxx1',
+ *        children:[{...},{...}]
+ *    },
+ *   {
+ *       groupBy:'brand',
+ *      name:'brand_xxx2',
+ *      children:[{...},{...}]
+ *   }
+ *  ]
+ * },
+ * {
+ *     groupBy: 'category',
+ *    name:'category_xxx2',
+ *   children:[{
+ *       groupBy:'brand',
+ *      name:'brand_xxx1',
+ *     children:[{...},{...}]
+ *  }]
+ * }
+ * ]
+ * * 转换为平铺的数组，其中data为该组的所有数据，keys为该组的分组键值对
+ * [
+ *  {data:[{...},{...}],keys:{category:'category_xxx1',brand:'brand_xxx1'}},
+ *  {data:[{...},{...}],keys:{category:'category_xxx1',brand:'brand_xxx2'}},
+ *  {data:[{...},{...}],keys:{category:'category_xxx2',brand:'brand_xxx1'}},
+ * ]
+ * 
+ * 
+ * @param groupNodes 
+ * @returns 
+ */
+// export const convertGroupNodesToFlatData = (groupNodes: GroupNode[]): FlatGroupData[] => {
+//   const result: FlatGroupData[] = [];
+//   let keys:Record<string,any>={};
+//   const traverse = (nodes: GroupNode[],keys:Record<string,any>) => {
+    
+//     nodes.forEach((node) => {
+//       if (node.data) {
+//         keys = {...keys,[node.groupBy||""]:node.name};
+//         result.push({data:node.data,keys:{...keys}});
+//       }
+//       if (node.children) {
+//         keys = {...keys,[node.groupBy||""]:node.name};
+//         traverse(node.children,keys);
+//       }
+//     });
+//   };
+//   traverse(groupNodes,keys);
+//   return result;
+// };
 
 export const groupColumnsOptions = [
   {label:"column1",value:"value1"},

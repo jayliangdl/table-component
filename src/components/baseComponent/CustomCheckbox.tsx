@@ -19,7 +19,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
     columnName,
     recordId,
     config,
-    defaultValue,
+    value,
     disabled,
     readOnly,
     style,
@@ -27,7 +27,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
     onValueChanged,
 }) => {
     const [options, setOptions] = React.useState<{ label: string; value: any }[]>([]);
-    const [checked,setChecked] = React.useState(!!defaultValue);
+    const [checked,setChecked] = React.useState(!!value);
     useEffect(() => {
         const { optionsConfig } = config;
         if(!optionsConfig || config.type!=="group"){
@@ -40,7 +40,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         fetchOptions();
     }, [config]);
     
-    const [originalValue, setOriginalValue] = React.useState<any>(defaultValue);
+    const [originalValue, setOriginalValue] = React.useState<any>(value);
     const handleChange = (checkValue:any) => {
         const updatedChecked = checkValue?.target?.checked;
         setChecked(updatedChecked);
@@ -80,7 +80,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
     if(config.type==="group" && optionsConfig){
         return (<Checkbox.Group 
                 options={options} 
-                defaultValue={Array.isArray(defaultValue)?defaultValue:[]}
+                defaultValue={Array.isArray(value)?value:[]}
                 disabled={disabled || readOnly}
                 onChange={handleChange}  
                 style={style}
